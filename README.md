@@ -1,100 +1,97 @@
 # Dragon Asteroid Run
 
-Dragon Asteroid Run is a space-themed arcade game built in C++ using the SIGIL (Simple Graphics Interface Library) graphics framework. The goal is to fly a dragon, avoid waves of incoming asteroids, and survive for as long as possible.
+Dragon Asteroid Run adalah game arcade bertema luar angkasa yang dibangun menggunakan bahasa C++ dan library grafis SIGIL (Simple Graphics Interface Library). Pemain mengontrol seekor naga untuk menghindari asteroid dan bertahan hidup selama mungkin.
 
-This project has been modernized from Microsoft Visual Studio (vcxproj format) to a cross-platform CMake build system and is configured for development in Visual Studio Code.
+Proyek ini telah dimigrasi dari format Microsoft Visual Studio (.vcxproj) lama ke sistem build CMake yang modern dan dikonfigurasi untuk pengembangan menggunakan Visual Studio Code.
 
 ---
 
-## Folder Structure
+## Struktur Folder
 
 ```text
 DragonAsteroidRun/
-├── .vscode/               # VSCode launch, task, and workspace settings
-├── assets/                # Game assets directory
-│   ├── sprites/           # Character, UI, and animation sprites
-│   ├── background/        # Parallax background textures
-│   └── audio/             # Sound effects (SFX) and background music (BGM)
-├── docs/                  # Documentation
-├── include/               # Public headers
-│   ├── core/              # Game engine and core systems (utils, game, managers)
-│   ├── entity/            # Game entities (dragon, asteroid)
-│   └── level/             # Level structure definitions
+├── .vscode/               # Pengaturan workspace, task, dan debug VSCode
+├── assets/                # Aset game (gambar, suara, dll)
+│   ├── sprites/           # Sprite karakter (naga, asteroid, ui, angka)
+│   ├── background/        # Tekstur latar belakang parallax
+│   └── audio/             # Efek suara (SFX) dan musik (BGM)
+├── docs/                  # Dokumentasi proyek
+├── include/               # File header (.h)
+│   ├── core/              # Inti game (utils, game, manager arsitektur)
+│   ├── entity/            # Entitas game (naga, asteroid)
+│   └── level/             # Definisi level/misi
 ├── lib/
-│   └── SIGIL/             # Vendorized SIGIL SDK (include, lib, and DLLs)
-├── src/                   # Source files matching include/ organization
+│   └── SIGIL/             # SDK SIGIL (file include, lib, dan DLL)
+├── src/                   # File source code (.cpp)
 │   ├── core/
 │   ├── entity/
 │   ├── level/
 │   └── ui/
-├── save/                  # Game save location
-├── CMakeLists.txt         # Root build configuration
-└── README.md              # Project documentation
+├── save/                  # Lokasi penyimpanan game (save game)
+├── CMakeLists.txt         # Konfigurasi build utama CMake
+└── README.md              # Dokumentasi proyek (Bahasa Indonesia)
 ```
 
 ---
 
-## Requirements
+## Persyaratan Sistem
 
-To build and run this project, make sure you have the following installed on your system:
-- **Operating System**: Windows (tested on Windows 10/11)
-- **Compiler**: Visual Studio Build Tools (MSVC Compiler)
-- **Build System**: CMake (v3.15 or newer)
-- **IDE**: Visual Studio Code
-- **C++ Version**: C++17
+Untuk melakukan build (compile) dan menjalankan game ini dari source code, pastikan Anda memiliki:
+- **Sistem Operasi**: Windows 10/11
+- **Kompiler**: Visual Studio Build Tools (MSVC Compiler)
+- **Build System**: CMake (versi 3.15 atau terbaru)
+- **IDE**: Visual Studio Code (opsional untuk editing kode)
+- **Standar C++**: C++17
 
 ---
 
-## Build Guide
+## Panduan Menjalankan Game
 
-### 1. Build via VSCode (Recommended)
-1. Open the project folder in Visual Studio Code.
-2. Ensure you have the **CMake Tools** and **C/C++** extensions installed.
-3. Open the Command Palette (`Ctrl+Shift+P`) and run **`CMake: Configure`**.
-4. Set the compiler kit to **`Visual Studio Community 2022 Release - amd64`** (or your MSVC equivalent).
-5. Build by pressing `F7` (or via status bar build button).
-6. Run/Debug by pressing `F5` (runs via `.vscode/launch.json`).
+### 1. Tanpa Menggunakan VSCode (Cara Langsung)
+Anda **tidak perlu** menginstal ekstensi VSCode apa pun jika hanya ingin menjalankan game yang sudah dicompile.
+1. Buka File Explorer dan masuk ke folder berikut:
+   `E:\DATA ARNAN\Gemastik - Dragon Asteroid Run\Dragon-Asteroid-Run\build\Release`
+2. Klik ganda pada file **`DragonAsteroidRun.exe`** untuk langsung memainkan game.
 
-### 2. Build via Command Line
-If you prefer building from the terminal, open PowerShell and run:
+*Alternatif via PowerShell:*
 ```powershell
-# 1. Create a build directory
-mkdir build
-
-# 2. Configure the project using MSVC generator
-cmake -B build -S . -G "Visual Studio 17 2022" -A x64
-
-# 3. Compile the executable
-cmake --build build --config Release
+cd "e:\DATA ARNAN\Gemastik - Dragon Asteroid Run\Dragon-Asteroid-Run\build\Release"
+.\DragonAsteroidRun.exe
 ```
-Once compilation completes, the output executable and its DLL dependencies will be located under:
-`build/Release/DragonAsteroidRun.exe`
+
+### 2. Menggunakan VSCode (Untuk Pengembang / Development)
+Jika Anda ingin memodifikasi kode atau melakukan compile ulang, Anda perlu menginstal beberapa ekstensi di VSCode:
+1. Instal ekstensi **C/C++** dan **CMake Tools** dari marketplace VSCode.
+2. Buka folder proyek `Dragon-Asteroid-Run` di VSCode.
+3. Jalankan konfigurasi CMake lewat Command Palette (`Ctrl+Shift+P` -> pilih **`CMake: Configure`**).
+4. Tekan tombol **`F7`** untuk melakukan compile ulang (Build).
+5. Tekan tombol **`F5`** untuk menjalankan game dalam mode Debug/Run.
 
 ---
 
-## Game Controls
+## Kontrol Game
 
-- **Enter**: Start game (from Main Menu)
-- **Up Arrow**: Fly Up
-- **Down Arrow**: Fly Down
-- **Escape**: Pause / Resume game
-- **Space**: Minimize window (during Pause) / Restart game (from Game Over screen)
-- **Q**: Exit game
-- **Left Mouse Click**: Interact with UI buttons (Start, Retry, Exit)
-
----
-
-## Future Architecture Roadmap
-
-This project prepared architecture placeholders to support future features:
-- **SceneManager**: Handles switching screen states.
-- **AudioManager**: Handles playing music loops and positional sound effects.
-- **SaveManager**: Manages saving and loading high-scores.
-- **LevelManager & MissionManager**: Coordinates gameplay phases and challenges.
-- **EncyclopediaManager & DiscoveryManager**: Handles space phenomenon lore unlock system.
+- **Enter**: Mulai Game (dari Menu Utama)
+- **Panah Atas**: Terbang ke Atas
+- **Panah Bawah**: Terbang ke Bawah
+- **Escape**: Pause / Resume Game
+- **Spasi**: Minimize Window (saat Pause) / Restart Game (saat Game Over)
+- **Q**: Keluar dari Game
+- **Klik Kiri Mouse**: Interaksi dengan tombol UI (Start, Retry, Exit)
 
 ---
 
-## Contributors
+## Rencana Arsitektur Masa Depan (Stubs)
 
-- **Bestics Team** (Original Authors & Migration Guide)
+Proyek ini telah menyiapkan struktur placeholder (stubs) untuk pengembangan fitur berikutnya:
+- **SceneManager**: Pengatur perpindahan layar/scene game.
+- **AudioManager**: Pengatur background music dan efek suara.
+- **SaveManager**: Pengatur penyimpanan skor tertinggi (High Score).
+- **LevelManager & MissionManager**: Pengatur fase permainan dan misi.
+- **EncyclopediaManager & DiscoveryManager**: Pengatur ensiklopedia fenomena luar angkasa.
+
+---
+
+## Kontributor
+
+- **GHZ**
