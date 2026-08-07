@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake Configure",
+            "type": "shell",
+            "command": "cmake -B build -S . -G \"Visual Studio 17 2022\" -A x64",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure CMake with MSVC compiler"
+        },
+        {
+            "label": "CMake Build (Release)",
+            "type": "shell",
+            "command": "cmake --build build --config Release",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "CMake Configure"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "detail": "Build the project in Release mode using MSVC"
+        },
+        {
+            "label": "CMake Build (Debug)",
+            "type": "shell",
+            "command": "cmake --build build --config Debug",
+            "group": "build",
+            "dependsOn": [
+                "CMake Configure"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "detail": "Build the project in Debug mode using MSVC"
+        }
+    ]
+}

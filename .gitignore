@@ -1,0 +1,40 @@
+# Build directories
+build/
+bin/
+out/
+
+# Visual Studio files
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# VSCode files (keep config, ignore workspace state)
+.vscode/.react/
+.vscode/chrome-debug-profile/
+.vscode/projectRoot.txt
+
+# Object files and compilation intermediates
+*.obj
+*.o
+*.pdb
+*.ilk
+*.idb
+
+# Executables and libraries
+*.exe
+*.dll
+*.lib
+*.so
+*.dylib
+*.a
+
+# Except vendorized binaries in lib/
+!/lib/**/*.dll
+!/lib/**/*.lib
+!/lib/**/*.h
+
+# Save files
+save/
+*.sav
