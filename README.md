@@ -50,12 +50,12 @@ Untuk melakukan build (compile) dan menjalankan game ini dari source code, pasti
 ### 1. Tanpa Menggunakan VSCode (Cara Langsung)
 Anda **tidak perlu** menginstal ekstensi VSCode apa pun jika hanya ingin menjalankan game yang sudah dicompile.
 1. Buka File Explorer dan masuk ke folder berikut:
-   `E:\DATA ARNAN\Gemastik - Dragon Asteroid Run\Dragon-Asteroid-Run\build\Release`
+   `Gemastik - Dragon Asteroid Run\Dragon-Asteroid-Run\build\Release`
 2. Klik ganda pada file **`DragonAsteroidRun.exe`** untuk langsung memainkan game.
 
 *Alternatif via PowerShell:*
 ```powershell
-cd "e:\DATA ARNAN\Gemastik - Dragon Asteroid Run\Dragon-Asteroid-Run\build\Release"
+cd "Gemastik - Dragon Asteroid Run\Dragon-Asteroid-Run\build\Release"
 .\DragonAsteroidRun.exe
 ```
 
