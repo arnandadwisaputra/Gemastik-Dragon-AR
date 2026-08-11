@@ -1,50 +1,109 @@
 #pragma once
+#include <vector>
+#include <string>
 #include "entity/dragon.h"
 #include "entity/asteroid.h"
-#include <vector>
+#include "rendering/BitmapFont.h"
+#include "ui/DiscoveryManager.h"
+#include "ui/EncyclopediaManager.h"
 
-class Game
-{
+enum class GameState {
+    MENU = 0,
+    PLAYING,
+    INFO_POPUP,
+    LEVEL_COMPLETE_INFO,
+    QUESTION,
+    WORMHOLE_TRANSITION,
+    GAME_OVER,
+    ENDING,
+    ENCYCLOPEDIA
+};
+
+class Game {
 public:
     void load();
     void update();
     void render();
 
 private:
-    // Background
-    int bgTex;
-    int gameState = 0;      // 0: Menu, 1: Main, 2: Game Over
-    int menuBgTex;          // Aset gambar menu
-    int gameOverBgTex;      // Aset gambar game over
-    int startBtnTex, retryBtnTex, exitBtnTex;  // Tambahkan variabel tekstur tombol
-    bool isClicked(float x, float y, float w, float h);  // Fungsi bantuan untuk cek apakah mouse mengklik area tertentu
-    bool isPaused = false;
-    int pauseInfoTex;
-    float bgX1 = 400; // posisi background pertama (tengah)
-    float bgX2 = 1200; // posisi background kedua
-    float bgSpeed = 100.0f; // kecepatan gerak background (pixel/detik)
-    float difficultyMultiplier = 1.0f; // Mulai dari kecepatan normal (1x)
-    float difficultyRate = 0.01f;     // Seberapa cepat naiknya (0.01 per detik)
-    int score = 0;           // Variabel skor
-    int highScore = 0; // Tambahkan ini
-    int scoreLabelTex; // Untuk gambar "SCORE:"
-    int highLabelTex;  // Untuk gambar "HIGH SCORE:"
-    int numTex[10];          // Array untuk tekstur angka 0-9  
-    void drawScore(float x, float y, int value); // Fungsi pembantu untuk menampilkan skor
-    int lives = 5;          // Jumlah nyawa awal
-    int heartTex;           // Tekstur untuk gambar hati
-    int bgm;        // ID untuk musik latar
-    int hitSfx;     // ID untuk efek suara saat menabrak
+    // Core states
+    GameState currentState = GameState::MENU;
+    int currentLevel = 1;
+    float levelTimer = 0.0f;
+    int lives = 3;
+    int score = 0;
+    int highScore = 0;
+    bool debugMode = false;
 
+    // Assets
+    int bgTex[6];               // Backgrounds for levels 1-6
+    int menuBgTex;              // Main menu background
+    int gameOverBgTex;          // Game over background
+    int heartTex;               // Heart icon for lives
+    int wormholeTex;            // Wormhole sprite for transition
+    int endingBgTex;            // Ending screen background
+    
+    // Buttons (using text now, but keep textures if needed)
+    int startBtnTex, retryBtnTex, exitBtnTex;
+
+    // Audio
+    int bgm;
+    int hitSfx;
+    int winSfx;                 // Sfx for correct answer / level complete
+    int selectSfx;              // Sfx for menu select
+
+    // Entities
     Dragon dragon;
+    std::vector<Asteroid> obstacles;
+    const int maxObstacles = 15;
 
-    // Multiple asteroids in waves
-    std::vector<Asteroid> asteroids;
-    int waveSize = 6;
-    float waveSpacing = 120.0f;
-    float spawnX = 900.0f;
-    float baseAsteroidSpeed = 200.0f;
-    float speedVariation = 60.0f;
+    // Managers
+    BitmapFont font;
+    DiscoveryManager discoveryManager;
+    EncyclopediaManager encyclopediaManager;
 
-    void spawnWave();
+    // Background scrolling
+    float bgX1 = 400.0f;
+    float bgX2 = 1200.0f;
+    float bgSpeed = 120.0f;
+
+    // Spawning parameters
+    float spawnTimer = 0.0f;
+    float baseSpawnInterval = 1.8f;
+    float difficultyMultiplier = 1.0f;
+    float difficultyRate = 0.015f; // Speed/spawn frequency increases by this rate per second
+
+    // Active popup states
+    const Discovery* activeDiscovery = nullptr;
+    std::string activePopupText = "";
+    int quizSelectedAnswer = -1; // -1: none, 0-3: A-D
+    bool quizAnswered = false;
+    bool quizAnswerCorrect = false;
+
+    // Wormhole effect states
+    float wormholeTimer = 0.0f;
+    float wormholeScale = 0.0f;
+    float wormholeRotation = 0.0f;
+
+    // Dash ready text blink state
+    float dashTextBlinkTimer = 0.0f;
+
+    // Helper functions
+    float getLevelDuration() const { return debugMode ? 10.0f : 180.0f; }
+    bool isClicked(float x, float y, float w, float h);
+    void resetLevel(int lvl);
+    void startNextLevel();
+    void spawnObstacle();
+    void triggerInfoPopup(const std::string& name);
+    void triggerLevelComplete();
+    void drawHUD();
+    void drawMenu();
+    void drawGameOver();
+    void drawInfoPopup();
+    void drawLevelCompleteInfo();
+    void drawQuestion();
+    void drawWormholeTransition();
+    void drawEnding();
+    void saveHighScore();
+    void loadHighScore();
 };

@@ -27,6 +27,7 @@ set(SOURCES
     ${SRC_DIR}/level/MissionManager.cpp
     ${SRC_DIR}/ui/EncyclopediaManager.cpp
     ${SRC_DIR}/ui/DiscoveryManager.cpp
+    ${SRC_DIR}/rendering/BitmapFont.cpp
 )
 
 add_executable(DragonAsteroidRun ${SOURCES})
