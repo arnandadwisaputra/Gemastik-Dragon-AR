@@ -1,3 +1,7 @@
 {
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}",
+        "--query-driver=C:/PROGRA~1/MICROS~3/2022/PROFES~1/VC/Tools/MSVC/*/bin/Host*/*/*.exe,C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/MSVC/*/bin/Host*/*/*.exe"
+    ]
 }

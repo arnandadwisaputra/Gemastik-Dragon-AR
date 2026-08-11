@@ -1,109 +1,110 @@
 #pragma once
-#include <vector>
-#include <string>
-#include "entity/dragon.h"
 #include "entity/asteroid.h"
+#include "entity/dragon.h"
 #include "rendering/BitmapFont.h"
 #include "ui/DiscoveryManager.h"
 #include "ui/EncyclopediaManager.h"
+#include <string>
+#include <vector>
 
 enum class GameState {
-    MENU = 0,
-    PLAYING,
-    INFO_POPUP,
-    LEVEL_COMPLETE_INFO,
-    QUESTION,
-    WORMHOLE_TRANSITION,
-    GAME_OVER,
-    ENDING,
-    ENCYCLOPEDIA
+  MENU = 0,
+  PLAYING,
+  INFO_POPUP,
+  LEVEL_COMPLETE_INFO,
+  QUESTION,
+  WORMHOLE_TRANSITION,
+  GAME_OVER,
+  ENDING,
+  ENCYCLOPEDIA
 };
 
 class Game {
 public:
-    void load();
-    void update();
-    void render();
+  void load();
+  void update();
+  void render();
 
 private:
-    // Core states
-    GameState currentState = GameState::MENU;
-    int currentLevel = 1;
-    float levelTimer = 0.0f;
-    int lives = 3;
-    int score = 0;
-    int highScore = 0;
-    bool debugMode = false;
+  // Core states
+  GameState currentState = GameState::MENU;
+  int currentLevel = 1;
+  float levelTimer = 0.0f;
+  int lives = 3;
+  int score = 0;
+  int highScore = 0;
+  bool debugMode = false;
 
-    // Assets
-    int bgTex[6];               // Backgrounds for levels 1-6
-    int menuBgTex;              // Main menu background
-    int gameOverBgTex;          // Game over background
-    int heartTex;               // Heart icon for lives
-    int wormholeTex;            // Wormhole sprite for transition
-    int endingBgTex;            // Ending screen background
-    
-    // Buttons (using text now, but keep textures if needed)
-    int startBtnTex, retryBtnTex, exitBtnTex;
+  // Assets
+  int bgTex[6];      // Backgrounds for levels 1-6
+  int menuBgTex;     // Main menu background
+  int gameOverBgTex; // Game over background
+  int heartTex;      // Heart icon for lives
+  int wormholeTex;   // Wormhole sprite for transition
+  int endingBgTex;   // Ending screen background
 
-    // Audio
-    int bgm;
-    int hitSfx;
-    int winSfx;                 // Sfx for correct answer / level complete
-    int selectSfx;              // Sfx for menu select
+  // Buttons (using text now, but keep textures if needed)
+  int startBtnTex, retryBtnTex, exitBtnTex;
 
-    // Entities
-    Dragon dragon;
-    std::vector<Asteroid> obstacles;
-    const int maxObstacles = 15;
+  // Audio
+  int bgm;
+  int hitSfx;
+  int winSfx;    // Sfx for correct answer / level complete
+  int selectSfx; // Sfx for menu select
 
-    // Managers
-    BitmapFont font;
-    DiscoveryManager discoveryManager;
-    EncyclopediaManager encyclopediaManager;
+  // Entities
+  Dragon dragon;
+  std::vector<Asteroid> obstacles;
+  const int maxObstacles = 15;
 
-    // Background scrolling
-    float bgX1 = 400.0f;
-    float bgX2 = 1200.0f;
-    float bgSpeed = 120.0f;
+  // Managers
+  BitmapFont font;
+  DiscoveryManager discoveryManager;
+  EncyclopediaManager encyclopediaManager;
 
-    // Spawning parameters
-    float spawnTimer = 0.0f;
-    float baseSpawnInterval = 1.8f;
-    float difficultyMultiplier = 1.0f;
-    float difficultyRate = 0.015f; // Speed/spawn frequency increases by this rate per second
+  // Background scrolling
+  float bgX1 = 400.0f;
+  float bgX2 = 1200.0f;
+  float bgSpeed = 120.0f;
 
-    // Active popup states
-    const Discovery* activeDiscovery = nullptr;
-    std::string activePopupText = "";
-    int quizSelectedAnswer = -1; // -1: none, 0-3: A-D
-    bool quizAnswered = false;
-    bool quizAnswerCorrect = false;
+  // Spawning parameters
+  float spawnTimer = 0.0f;
+  float baseSpawnInterval = 1.8f;
+  float difficultyMultiplier = 1.0f;
+  float difficultyRate =
+      0.015f; // Speed/spawn frequency increases by this rate per second
 
-    // Wormhole effect states
-    float wormholeTimer = 0.0f;
-    float wormholeScale = 0.0f;
-    float wormholeRotation = 0.0f;
+  // Active popup states
+  const Discovery *activeDiscovery = nullptr;
+  std::string activePopupText = "";
+  int quizSelectedAnswer = -1; // -1: none, 0-3: A-D
+  bool quizAnswered = false;
+  bool quizAnswerCorrect = false;
 
-    // Dash ready text blink state
-    float dashTextBlinkTimer = 0.0f;
+  // Wormhole effect states
+  float wormholeTimer = 0.0f;
+  float wormholeScale = 0.0f;
+  float wormholeRotation = 0.0f;
 
-    // Helper functions
-    float getLevelDuration() const { return debugMode ? 10.0f : 180.0f; }
-    bool isClicked(float x, float y, float w, float h);
-    void resetLevel(int lvl);
-    void startNextLevel();
-    void spawnObstacle();
-    void triggerInfoPopup(const std::string& name);
-    void triggerLevelComplete();
-    void drawHUD();
-    void drawMenu();
-    void drawGameOver();
-    void drawInfoPopup();
-    void drawLevelCompleteInfo();
-    void drawQuestion();
-    void drawWormholeTransition();
-    void drawEnding();
-    void saveHighScore();
-    void loadHighScore();
+  // Dash ready text blink state
+  float dashTextBlinkTimer = 0.0f;
+
+  // Helper functions
+  float getLevelDuration() const { return debugMode ? 10.0f : 180.0f; }
+  bool isClicked(float x, float y, float w, float h);
+  void resetLevel(int lvl);
+  void startNextLevel();
+  void spawnObstacle();
+  void triggerInfoPopup(const std::string &name);
+  void triggerLevelComplete();
+  void drawHUD();
+  void drawMenu();
+  void drawGameOver();
+  void drawInfoPopup();
+  void drawLevelCompleteInfo();
+  void drawQuestion();
+  void drawWormholeTransition();
+  void drawEnding();
+  void saveHighScore();
+  void loadHighScore();
 };

@@ -1,0 +1,80 @@
+[
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\main.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\main.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\main.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\main.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\core\\game.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\game.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\game.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\core\\game.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\core\\utils.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\utils.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\utils.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\core\\utils.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\core\\SceneManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\SceneManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\SceneManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\core\\SceneManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\core\\AudioManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\AudioManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\AudioManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\core\\AudioManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\core\\SaveManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\SaveManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\core\\SaveManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\core\\SaveManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\entity\\dragon.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\entity\\dragon.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\entity\\dragon.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\entity\\dragon.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\entity\\asteroid.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\entity\\asteroid.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\entity\\asteroid.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\entity\\asteroid.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\level\\LevelManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\level\\LevelManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\level\\LevelManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\level\\LevelManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\level\\MissionManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\level\\MissionManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\level\\MissionManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\level\\MissionManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\ui\\EncyclopediaManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\ui\\EncyclopediaManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\ui\\EncyclopediaManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\ui\\EncyclopediaManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\ui\\DiscoveryManager.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\ui\\DiscoveryManager.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\ui\\DiscoveryManager.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\ui\\DiscoveryManager.cpp.obj"
+},
+{
+  "directory": "E:/DATA ARNAN/Gemastik - Dragon Asteroid Run/Dragon-Asteroid-Run/build_ninja",
+  "command": "C:\\PROGRA~1\\MICROS~3\\2022\\PROFES~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\include\" -I\"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\lib\\SIGIL\\include\" /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\DragonAsteroidRun.dir\\src\\rendering\\BitmapFont.cpp.obj /FdCMakeFiles\\DragonAsteroidRun.dir\\ /FS -c \"E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\rendering\\BitmapFont.cpp\"",
+  "file": "E:\\DATA ARNAN\\Gemastik - Dragon Asteroid Run\\Dragon-Asteroid-Run\\src\\rendering\\BitmapFont.cpp",
+  "output": "CMakeFiles\\DragonAsteroidRun.dir\\src\\rendering\\BitmapFont.cpp.obj"
+}
+]
