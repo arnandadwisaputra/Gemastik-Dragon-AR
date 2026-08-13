@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "core/Localization.h"
 
 struct Discovery {
     int id;
@@ -19,6 +20,7 @@ public:
     ~DiscoveryManager();
 
     void init();
+    void localize(Language lang);
     bool unlockPhenomenon(const std::string& name, bool& isNew);
     bool isDiscovered(const std::string& name) const;
     const Discovery* getDiscovery(const std::string& name) const;

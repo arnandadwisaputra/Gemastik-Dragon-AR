@@ -18,6 +18,7 @@ set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/core/game.cpp
     ${SRC_DIR}/core/utils.cpp
+    ${SRC_DIR}/core/Localization.cpp
     ${SRC_DIR}/core/SceneManager.cpp
     ${SRC_DIR}/core/AudioManager.cpp
     ${SRC_DIR}/core/SaveManager.cpp

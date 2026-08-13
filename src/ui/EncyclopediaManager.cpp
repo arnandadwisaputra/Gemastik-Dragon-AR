@@ -1,6 +1,8 @@
 #include "ui/EncyclopediaManager.h"
+#include "core/Localization.h"
 #include <sl.h>
 #include <iostream>
+#include <algorithm>
 
 EncyclopediaManager::EncyclopediaManager() : selectedIndex(0), lastUpPressed(false), lastDownPressed(false) {}
 
@@ -33,7 +35,7 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
 
     // 2. Draw Title
     slSetForeColor(0.3, 0.8, 1.0, 1.0); // Light blue
-    font.drawText("SPACE ENCYCLOPEDIA", 100, 540, 24, 30, 20);
+    font.drawText(Loc::tr("encyclopedia.title"), 100, 540, 24, 30, 20);
 
     slSetForeColor(0.4, 0.4, 0.4, 1.0);
     slLine(50, 510, 750, 510);
@@ -52,8 +54,9 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
 
         // Format name
         std::string displayName = d.name;
+        std::replace(displayName.begin(), displayName.end(), '_', ' ');
         if (!d.discovered) {
-            displayName = "??? LOCKED ???";
+            displayName = (Loc::getLanguage() == Language::INDONESIAN) ? "??? TERKUNCI ???" : "??? LOCKED ???";
         }
 
         if (isSelected) {
@@ -82,11 +85,13 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
         if (d.discovered) {
             // Title
             slSetForeColor(1.0, 0.9, 0.2, 1.0); // Yellow
-            font.drawText(d.name, detailX, 460, 22, 26, 17);
+            std::string cleanName = d.name;
+            std::replace(cleanName.begin(), cleanName.end(), '_', ' ');
+            font.drawText(cleanName, detailX, 460, 22, 26, 17);
 
             // Category Label
             slSetForeColor(0.6, 0.6, 0.6, 1.0);
-            font.drawText("SCIENCE PHENOMENON DETECTED", detailX, 425, 12, 15, 9);
+            font.drawText(Loc::tr("encyclopedia.science"), detailX, 425, 12, 15, 9);
 
             slSetForeColor(0.3, 0.8, 1.0, 1.0);
             slLine(detailX, 410, 750, 410);
@@ -97,13 +102,13 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
         } else {
             // Locked screen
             slSetForeColor(0.5, 0.5, 0.5, 1.0);
-            font.drawText("ENTRY LOCKED", detailX, 460, 22, 26, 17);
+            font.drawText(Loc::tr("encyclopedia.locked"), detailX, 460, 22, 26, 17);
 
             slSetForeColor(0.3, 0.3, 0.3, 1.0);
             slLine(detailX, 410, 750, 410);
 
             slSetForeColor(0.6, 0.6, 0.6, 1.0);
-            font.drawWrappedText("Explore the space environments in Dragon Asteroid Run. Discover this phenomenon during your mission to unlock detailed scientific data here.", detailX, 370, 400, 14, 18, 10, 24);
+            font.drawWrappedText(Loc::tr("encyclopedia.locked_desc"), detailX, 370, 400, 14, 18, 10, 24);
         }
     }
 
@@ -112,7 +117,7 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
     slLine(50, 80, 750, 80);
 
     slSetForeColor(0.7, 0.7, 0.7, 1.0);
-    font.drawText("UP/DOWN: NAVIGATE  |  ESC: RETURN TO MENU", 180, 50, 14, 18, 10);
+    font.drawText(Loc::tr("encyclopedia.footer"), 180, 50, 14, 18, 10);
 }
 
 void EncyclopediaManager::resetSelection() {

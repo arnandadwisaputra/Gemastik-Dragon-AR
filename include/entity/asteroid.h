@@ -38,6 +38,7 @@ public:
 
 private:
     ObstacleType type = ObstacleType::ASTEROID;
+    int variation = 0;
     float posX = 900.0f;
     float posY = 300.0f;
     float velX = -200.0f;

@@ -1,11 +1,13 @@
 #include "core/game.h"
 #include "core/utils.h"
+#include "core/Localization.h"
 #include <sl.h>
 #include <Windows.h>
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -18,12 +20,13 @@ void Game::load() {
     bgTex[4] = slLoadTexture(Utils::getAssetPath("background", "bg_level5_nebula_tile.png").c_str());
     bgTex[5] = slLoadTexture(Utils::getAssetPath("background", "bg_level6_deep_space_tile.png").c_str());
 
+    deepSpaceTex = slLoadTexture(Utils::getAssetPath("background", "bg_space_deep_tile.png.png").c_str());
     menuBgTex = slLoadTexture(Utils::getAssetPath("ui", "menu_bg.jpg").c_str());
     gameOverBgTex = slLoadTexture(Utils::getAssetPath("ui", "game_over.jpg").c_str());
     heartTex = slLoadTexture(Utils::getAssetPath("ui", "heart.png").c_str());
 
-    // Use gravity well texture for wormhole sprite
-    wormholeTex = slLoadTexture(Utils::getAssetPath("obstacle", "gravity_well_01.png").c_str());
+    // Load wormhole transition texture from effects directory
+    wormholeTex = slLoadTexture(Utils::getAssetPath("effects", "wormhole-transition.png").c_str());
 
     // 2. Load Audio
     bgm = slLoadWAV(Utils::getAssetPath("audio", "bgm.wav").c_str());
@@ -48,13 +51,22 @@ void Game::load() {
     loadHighScore();
 
     srand((unsigned)time(NULL));
+
+    // Initialize selectors
+    menuSelectedIndex = 0;
+    pauseSelectedIndex = 0;
+    fadeInTimer = 0.0f;
+}
+
+bool Game::isHovered(float x, float y, float w, float h) {
+    float mx = (float)slGetMouseX();
+    float my = (float)slGetMouseY();
+    return (mx > x - w / 2.0f && mx < x + w / 2.0f && my > y - h / 2.0f && my < y + h / 2.0f);
 }
 
 bool Game::isClicked(float x, float y, float w, float h) {
     if (slGetMouseButton(SL_MOUSE_BUTTON_LEFT)) {
-        float mx = (float)slGetMouseX();
-        float my = (float)slGetMouseY();
-        return (mx > x - w / 2.0f && mx < x + w / 2.0f && my > y - h / 2.0f && my < y + h / 2.0f);
+        return isHovered(x, y, w, h);
     }
     return false;
 }
@@ -85,6 +97,7 @@ void Game::resetLevel(int lvl) {
     levelTimer = 0.0f;
     difficultyMultiplier = 1.0f;
     spawnTimer = 0.0f;
+    fadeInTimer = 0.6f; // Smooth fade-in
 
     // Clear active obstacles
     for (auto& obs : obstacles) {
@@ -96,7 +109,7 @@ void Game::resetLevel(int lvl) {
 
     // Trigger instant discoveries for specific levels
     if (currentLevel == 2) {
-        triggerInfoPopup("ASTEROID_BELT");
+        triggerInfoPopup("ASTEROID");
     } else if (currentLevel == 3) {
         triggerInfoPopup("SOLAR_FLARE");
     } else if (currentLevel == 5) {
@@ -132,7 +145,7 @@ void Game::triggerInfoPopup(const string& name) {
 void Game::triggerLevelComplete() {
     string name = "";
     if (currentLevel == 1) name = "SATELLITE";
-    else if (currentLevel == 2) name = "ASTEROID_BELT";
+    else if (currentLevel == 2) name = "ASTEROID";
     else if (currentLevel == 3) name = "SOLAR_FLARE";
     else if (currentLevel == 4) name = "COMET";
     else if (currentLevel == 5) name = "PULSAR";
@@ -281,19 +294,70 @@ void Game::update() {
         }
         lastDPressed = dPressed;
 
-        if (isClicked(400, 260, 220, 50) || slGetKey(SL_KEY_ENTER)) {
-            currentState = GameState::PLAYING;
-            resetLevel(1);
-            score = 0;
-            lives = 3;
+        static bool lastUpMenu = false;
+        static bool lastDownMenu = false;
+        bool upMenu = slGetKey(SL_KEY_UP) || slGetKey('W');
+        bool downMenu = slGetKey(SL_KEY_DOWN) || slGetKey('S');
+        
+        if (upMenu && !lastUpMenu) {
+            menuSelectedIndex = (menuSelectedIndex - 1 + 4) % 4;
+            slSoundPlay(selectSfx);
         }
-        else if (isClicked(400, 190, 220, 50) || slGetKey('E')) {
-            currentState = GameState::ENCYCLOPEDIA;
-            encyclopediaManager.resetSelection();
+        if (downMenu && !lastDownMenu) {
+            menuSelectedIndex = (menuSelectedIndex + 1) % 4;
+            slSoundPlay(selectSfx);
         }
-        else if (isClicked(400, 120, 220, 50) || slGetKey('Q')) {
-            slClose();
-            exit(0);
+        lastUpMenu = upMenu;
+        lastDownMenu = downMenu;
+
+        // Mouse hover selection update
+        if (isHovered(400, 310, 220, 46)) menuSelectedIndex = 0;
+        else if (isHovered(400, 240, 220, 46)) menuSelectedIndex = 1;
+        else if (isHovered(400, 170, 220, 46)) menuSelectedIndex = 2;
+        else if (isHovered(400, 100, 220, 46)) menuSelectedIndex = 3;
+
+        static bool lastEnter = false;
+        static bool lastSpace = false;
+        bool enterPressed = slGetKey(SL_KEY_ENTER);
+        bool spacePressed = slGetKey(' ');
+        bool activated = (enterPressed && !lastEnter) || (spacePressed && !lastSpace);
+        lastEnter = enterPressed;
+        lastSpace = spacePressed;
+
+        // Check activation
+        if (activated || slGetMouseButton(SL_MOUSE_BUTTON_LEFT)) {
+            bool clickedStart = isClicked(400, 310, 220, 46);
+            bool clickedEnc = isClicked(400, 240, 220, 46);
+            bool clickedLang = isClicked(400, 170, 220, 46);
+            bool clickedExit = isClicked(400, 100, 220, 46);
+
+            if ((activated && menuSelectedIndex == 0) || clickedStart) {
+                slSoundPlay(selectSfx);
+                currentState = GameState::PLAYING;
+                resetLevel(1);
+                score = 0;
+                lives = 3;
+            }
+            else if ((activated && menuSelectedIndex == 1) || clickedEnc) {
+                slSoundPlay(selectSfx);
+                previousState = GameState::MENU;
+                currentState = GameState::ENCYCLOPEDIA;
+                encyclopediaManager.resetSelection();
+            }
+            else if ((activated && menuSelectedIndex == 2) || clickedLang) {
+                slSoundPlay(selectSfx);
+                if (Loc::getLanguage() == Language::ENGLISH) {
+                    Loc::setLanguage(Language::INDONESIAN);
+                    discoveryManager.localize(Language::INDONESIAN);
+                } else {
+                    Loc::setLanguage(Language::ENGLISH);
+                    discoveryManager.localize(Language::ENGLISH);
+                }
+            }
+            else if ((activated && menuSelectedIndex == 3) || clickedExit) {
+                slClose();
+                exit(0);
+            }
         }
         return;
     }
@@ -302,45 +366,126 @@ void Game::update() {
     if (currentState == GameState::ENCYCLOPEDIA) {
         encyclopediaManager.update(discoveryManager);
         if (slGetKey(SL_KEY_ESCAPE)) {
-            currentState = GameState::MENU;
+            currentState = previousState;
+            slSoundPlay(selectSfx);
+        }
+        return;
+    }
+
+    // PAUSE STATE
+    if (currentState == GameState::PAUSE) {
+        static bool lastUpPause = false;
+        static bool lastDownPause = false;
+        bool upPause = slGetKey(SL_KEY_UP) || slGetKey('W');
+        bool downPause = slGetKey(SL_KEY_DOWN) || slGetKey('S');
+        
+        if (upPause && !lastUpPause) {
+            pauseSelectedIndex = (pauseSelectedIndex - 1 + 3) % 3;
+            slSoundPlay(selectSfx);
+        }
+        if (downPause && !lastDownPause) {
+            pauseSelectedIndex = (pauseSelectedIndex + 1) % 3;
+            slSoundPlay(selectSfx);
+        }
+        lastUpPause = upPause;
+        lastDownPause = downPause;
+
+        // Mouse hover selection update
+        if (isHovered(400, 320, 220, 46)) pauseSelectedIndex = 0;
+        else if (isHovered(400, 250, 220, 46)) pauseSelectedIndex = 1;
+        else if (isHovered(400, 180, 220, 46)) pauseSelectedIndex = 2;
+
+        static bool lastEnterP = false;
+        static bool lastSpaceP = false;
+        bool enterP = slGetKey(SL_KEY_ENTER);
+        bool spaceP = slGetKey(' ');
+        bool activatedPause = (enterP && !lastEnterP) || (spaceP && !lastSpaceP);
+        lastEnterP = enterP;
+        lastSpaceP = spaceP;
+
+        if (activatedPause || slGetMouseButton(SL_MOUSE_BUTTON_LEFT)) {
+            bool clickedResume = isClicked(400, 320, 220, 46);
+            bool clickedEnc = isClicked(400, 250, 220, 46);
+            bool clickedMenu = isClicked(400, 180, 220, 46);
+            
+            if ((activatedPause && pauseSelectedIndex == 0) || clickedResume) {
+                currentState = GameState::PLAYING;
+                slSoundPlay(selectSfx);
+            }
+            else if ((activatedPause && pauseSelectedIndex == 1) || clickedEnc) {
+                previousState = GameState::PAUSE;
+                currentState = GameState::ENCYCLOPEDIA;
+                encyclopediaManager.resetSelection();
+                slSoundPlay(selectSfx);
+            }
+            else if ((activatedPause && pauseSelectedIndex == 2) || clickedMenu) {
+                currentState = GameState::MENU;
+                slSoundPlay(selectSfx);
+                if (score > highScore) {
+                    highScore = score;
+                    saveHighScore();
+                }
+            }
         }
         return;
     }
 
     // GAME OVER STATE
     if (currentState == GameState::GAME_OVER) {
-        if (isClicked(300, 160, 180, 50) || slGetKey(' ') || slGetKey(SL_KEY_ENTER)) {
-            lives = 3;
-            resetLevel(currentLevel);
-            currentState = GameState::PLAYING;
-        }
-        else if (isClicked(500, 160, 180, 50) || slGetKey(SL_KEY_ESCAPE)) {
-            currentState = GameState::MENU;
+        bool retryHovered = isHovered(300, 160, 180, 46);
+        bool menuHovered = isHovered(500, 160, 180, 46);
+        
+        static bool lastEnterGO = false;
+        static bool lastSpaceGO = false;
+        bool enterGO = slGetKey(SL_KEY_ENTER);
+        bool spaceGO = slGetKey(' ');
+        bool activatedGO = (enterGO && !lastEnterGO) || (spaceGO && !lastSpaceGO);
+        lastEnterGO = enterGO;
+        lastSpaceGO = spaceGO;
+
+        if (activatedGO || slGetMouseButton(SL_MOUSE_BUTTON_LEFT)) {
+            bool clickedRetry = isClicked(300, 160, 180, 46);
+            bool clickedMenu = isClicked(500, 160, 180, 46);
+
+            if ((activatedGO && retryHovered) || clickedRetry || (activatedGO && !menuHovered)) {
+                lives = 3;
+                resetLevel(currentLevel);
+                currentState = GameState::PLAYING;
+                slSoundPlay(selectSfx);
+            }
+            else if ((activatedGO && menuHovered) || clickedMenu) {
+                currentState = GameState::MENU;
+                slSoundPlay(selectSfx);
+            }
         }
         return;
     }
 
     // ENDING STATE
     if (currentState == GameState::ENDING) {
-        if (slGetKey(SL_KEY_ENTER) || slGetKey(' ') || slGetKey(SL_KEY_ESCAPE)) {
+        bool clickedEnd = isClicked(400, 100, 320, 46);
+        if (slGetKey(SL_KEY_ENTER) || slGetKey(' ') || slGetKey(SL_KEY_ESCAPE) || clickedEnd) {
             currentState = GameState::MENU;
+            slSoundPlay(selectSfx);
         }
         return;
     }
 
     // POPUP STATES (PAUSED MECHANICS)
     if (currentState == GameState::INFO_POPUP) {
-        if (slGetKey(SL_KEY_ENTER) || slGetKey(' ')) {
+        if (slGetKey(SL_KEY_ENTER) || slGetKey(' ') || isClicked(400, 160, 200, 46)) {
             currentState = GameState::PLAYING;
+            slSoundPlay(selectSfx);
         }
         return;
     }
 
     if (currentState == GameState::LEVEL_COMPLETE_INFO) {
-        if (slGetKey(SL_KEY_ENTER) || slGetKey(' ')) {
+        if (slGetKey(SL_KEY_ENTER) || slGetKey(' ') || isClicked(400, 150, 220, 46)) {
             currentState = GameState::QUESTION;
             quizSelectedAnswer = -1;
             quizAnswered = false;
+            slSoundPlay(selectSfx);
         }
         return;
     }
@@ -357,16 +502,19 @@ void Game::update() {
                 if (quizSelectedAnswer == activeDiscovery->correctAnswerIndex) {
                     quizAnswerCorrect = true;
                     score += 100;
+                    slSoundPlay(winSfx);
                 } else {
                     quizAnswerCorrect = false;
+                    slSoundPlay(hitSfx);
                 }
             }
         } else {
-            if (slGetKey(SL_KEY_ENTER) || slGetKey(' ')) {
+            if (slGetKey(SL_KEY_ENTER) || slGetKey(' ') || isClicked(400, 105, 300, 36)) {
                 currentState = GameState::WORMHOLE_TRANSITION;
                 wormholeTimer = 0.0f;
                 wormholeScale = 0.0f;
                 wormholeRotation = 0.0f;
+                slSoundPlay(selectSfx);
             }
         }
         return;
@@ -374,14 +522,24 @@ void Game::update() {
 
     if (currentState == GameState::WORMHOLE_TRANSITION) {
         wormholeTimer += dt;
-        wormholeRotation += 150.0f * dt;
-        if (wormholeTimer < 0.9f) {
-            wormholeScale = wormholeTimer / 0.9f;
+        wormholeRotation += 180.0f * dt;
+        
+        if (wormholeTimer < 0.8f) {
+            wormholeScale = (wormholeTimer / 0.8f) * 1.5f;
+        } else if (wormholeTimer < 1.5f) {
+            wormholeScale = 1.5f;
         } else {
-            wormholeScale = (1.8f - wormholeTimer) / 0.9f;
+            wormholeScale = 1.5f + (wormholeTimer - 1.5f) * 2.0f;
         }
 
-        if (wormholeTimer >= 1.8f) {
+        // Pull dragon to center
+        float px = dragon.getX();
+        float py = dragon.getY();
+        float dx = 400.0f - px;
+        float dy = 300.0f - py;
+        dragon.setPosition(px + dx * 4.0f * dt, py + dy * 4.0f * dt);
+
+        if (wormholeTimer >= 2.2f) {
             startNextLevel();
         }
         return;
@@ -389,21 +547,23 @@ void Game::update() {
 
     // ACTIVE PLAYING STATE
     if (currentState == GameState::PLAYING) {
-        // Toggle pause info overlay if Escape is pressed (Standard pause is handled)
+        // Toggle pause menu with Escape key (de-bounced)
         static bool lastEscPressed = false;
         bool escPressed = slGetKey(SL_KEY_ESCAPE);
         if (escPressed && !lastEscPressed) {
-            // Return to menu or keep paused. The instructions say "game pause pada info/question". 
-            // Escape can simply quit to menu
-            currentState = GameState::MENU;
-            if (score > highScore) {
-                highScore = score;
-                saveHighScore();
-            }
+            currentState = GameState::PAUSE;
+            pauseSelectedIndex = 0;
+            slSoundPlay(selectSfx);
         }
         lastEscPressed = escPressed;
 
         levelTimer += dt;
+
+        // Decement fade in timer
+        if (fadeInTimer > 0.0f) {
+            fadeInTimer -= dt;
+            if (fadeInTimer < 0.0f) fadeInTimer = 0.0f;
+        }
 
         // Background scrolling
         bgX1 -= bgSpeed * dt;
@@ -437,6 +597,7 @@ void Game::update() {
             // Sucked in condition
             if (dist < 40.0f) {
                 currentState = GameState::ENDING;
+                slSoundPlay(winSfx);
                 if (score > highScore) {
                     highScore = score;
                     saveHighScore();
@@ -483,7 +644,6 @@ void Game::update() {
                 float dummyX = 0, dummyY = 0;
                 // Move custom celestial wave paths
                 if (obs.getType() == ObstacleType::CELESTIAL_OBJECT) {
-                    // Update Y position by wave
                     float newY = obs.getY() + std::sin((float)slGetTime() * 3.5f) * 120.0f * dt;
                     obs.spawn(ObstacleType::CELESTIAL_OBJECT, obs.getX(), newY, -160.0f, 0.0f, 75.0f, 75.0f);
                 }
@@ -502,6 +662,7 @@ void Game::update() {
                     string item = "";
                     switch (obs.getType()) {
                         case ObstacleType::ASTEROID: item = "ASTEROID"; break;
+                        case ObstacleType::ASTEROID_BELT: item = "ASTEROID"; break;
                         case ObstacleType::SATELLITE: item = "SATELLITE"; break;
                         case ObstacleType::SPACE_DEBRIS: item = "SPACE_DEBRIS"; break;
                         case ObstacleType::COMET: item = "COMET"; break;
@@ -545,27 +706,117 @@ void Game::update() {
     }
 }
 
-void Game::drawHUD() {
-    // Score labels
-    font.drawText("SCORE: " + to_string(score), 40, 560, 14, 18, 10);
-    font.drawText("LEVEL: " + to_string(currentLevel), 250, 560, 14, 18, 10);
+void Game::drawRoundedRect(float x, float y, float w, float h, float r) {
+    if (r > w / 2.0f) r = w / 2.0f;
+    if (r > h / 2.0f) r = h / 2.0f;
+    
+    slRectangleFill(x, y, w - 2 * r, h);
+    slRectangleFill(x, y, w, h - 2 * r);
+    
+    slCircleFill(x - w / 2.0f + r, y + h / 2.0f - r, r, 16);
+    slCircleFill(x + w / 2.0f - r, y + h / 2.0f - r, r, 16);
+    slCircleFill(x - w / 2.0f + r, y - h / 2.0f + r, r, 16);
+    slCircleFill(x + w / 2.0f - r, y - h / 2.0f + r, r, 16);
+}
 
-    // Render lives (hearts)
+void Game::drawCenteredText(const string& text, float centerX, float centerY, float sizeX, float sizeY, float spacing) {
+    float startX = centerX - (text.length() - 1) * spacing / 2.0f;
+    font.drawText(text, startX, centerY, sizeX, sizeY, spacing);
+}
+
+void Game::drawButton(float x, float y, float w, float h, const string& label, bool isSelected) {
+    if (isSelected) {
+        slSetForeColor(0.7f, 0.4f, 0.9f, 1.0f); // Violet border
+        drawRoundedRect(x, y, w + 4, h + 4, 12.0f);
+        
+        slSetForeColor(0.3f, 0.1f, 0.5f, 0.95f); // Violet fill
+        drawRoundedRect(x, y, w, h, 10.0f);
+    } else {
+        slSetForeColor(0.3f, 0.15f, 0.45f, 1.0f); // Darker border
+        drawRoundedRect(x, y, w + 2, h + 2, 11.0f);
+        
+        slSetForeColor(0.15f, 0.08f, 0.28f, 0.9f); // Dark purple fill
+        drawRoundedRect(x, y, w, h, 10.0f);
+    }
+    
+    if (isSelected) {
+        slSetForeColor(1.0f, 0.9f, 0.2f, 1.0f); // Yellow highlight text
+    } else {
+        slSetForeColor(0.9f, 0.9f, 0.9f, 1.0f);
+    }
+    
+    drawCenteredText(label, x, y - 7.0f, 15.0f, 18.0f, 11.0f);
+    slSetForeColor(1, 1, 1, 1);
+}
+
+void Game::drawScienceTicker(float dt) {
+    slSetForeColor(0.04f, 0.02f, 0.1f, 0.85f);
+    slRectangleFill(400, 25, 800, 30);
+    
+    slSetForeColor(0.4f, 0.2f, 0.6f, 1.0f);
+    slLine(0, 40, 800, 40);
+    slLine(0, 10, 800, 10);
+    
+    string tickerText = Loc::tr("ticker.level" + to_string(currentLevel));
+    float textWidth = tickerText.length() * 10.0f;
+    
+    static int lastLevel = 1;
+    static float tickerX = 800.0f;
+    if (currentLevel != lastLevel) {
+        tickerX = 800.0f;
+        lastLevel = currentLevel;
+    }
+    
+    tickerX -= 90.0f * dt;
+    if (tickerX < -textWidth) {
+        tickerX = 800.0f;
+    }
+    
+    slSetForeColor(0.3f, 0.8f, 1.0f, 1.0f); // Cyan text
+    font.drawText(tickerText, tickerX, 20, 13, 16, 10);
+    slSetForeColor(1, 1, 1, 1);
+}
+
+void Game::drawPauseMenu() {
+    slSetForeColor(0.02f, 0.02f, 0.05f, 0.75f);
+    slRectangleFill(400, 300, 800, 600);
+    
+    slSetForeColor(0.08f, 0.04f, 0.16f, 0.95f);
+    drawRoundedRect(400, 270, 320, 360, 16.0f);
+    
+    slSetForeColor(0.4f, 0.2f, 0.6f, 1.0f);
+    slRectangleOutline(400, 270, 320, 360);
+    
+    slSetForeColor(0.3f, 0.8f, 1.0f, 1.0f);
+    drawCenteredText(Loc::tr("pause.title"), 400, 410, 22, 28, 16);
+    
+    slSetForeColor(0.4f, 0.4f, 0.4f, 1.0f);
+    slLine(270, 385, 530, 385);
+    
+    drawButton(400, 320, 220, 46, Loc::tr("pause.resume"), pauseSelectedIndex == 0);
+    drawButton(400, 250, 220, 46, Loc::tr("pause.encyclopedia"), pauseSelectedIndex == 1);
+    drawButton(400, 180, 220, 46, Loc::tr("pause.menu"), pauseSelectedIndex == 2);
+}
+
+void Game::drawHUD() {
+    slSetForeColor(1, 1, 1, 1);
+    font.drawText(Loc::tr("hud.score") + to_string(score), 40, 560, 14, 18, 10);
+    font.drawText(Loc::tr("hud.level") + to_string(currentLevel), 250, 560, 14, 18, 10);
+
     for (int i = 0; i < lives; ++i) {
         slSprite(heartTex, 620.0f + (i * 35.0f), 570.0f, 25.0f, 25.0f);
     }
 
-    // Render Level 6 Dash prompt
     if (currentLevel == 6) {
         dashTextBlinkTimer += (float)slGetDeltaTime();
         if (dragon.isDashReady()) {
-            if (std::fmod(dashTextBlinkTimer, 0.6f) < 0.3f) {
-                slSetForeColor(1.0, 0.9, 0.2, 1.0); // yellow
-                font.drawText("DASH READY [SPACEBAR]", 290, 50, 14, 18, 10);
+            if (fmod(dashTextBlinkTimer, 0.6f) < 0.3f) {
+                slSetForeColor(1.0, 0.9, 0.2, 1.0);
+                font.drawText(Loc::tr("hud.dash_ready"), 290, 50, 14, 18, 10);
             }
         } else {
-            slSetForeColor(0.5, 0.5, 0.5, 1.0); // grey
-            font.drawText("DASH CHARGING...", 320, 50, 14, 18, 10);
+            slSetForeColor(0.5, 0.5, 0.5, 1.0);
+            font.drawText(Loc::tr("hud.dash_charging"), 320, 50, 14, 18, 10);
         }
         slSetForeColor(1, 1, 1, 1);
     }
@@ -574,39 +825,20 @@ void Game::drawHUD() {
 void Game::drawMenu() {
     slSprite(menuBgTex, 400, 300, 800, 600);
 
-    // Title
-    slSetForeColor(1.0, 0.9, 0.2, 1.0);
-    font.drawText("DRAGON ASTEROID RUN", 160, 480, 24, 30, 20);
-
     slSetForeColor(1, 1, 1, 1);
-    font.drawText("HIGH SCORE: " + to_string(highScore), 310, 400, 15, 20, 11);
+    drawCenteredText(Loc::tr("menu.highscore") + to_string(highScore), 400, 380, 15, 20, 11);
 
-    // Buttons
-    // Play button
-    slSetForeColor(0.1, 0.15, 0.3, 0.85);
-    slRectangleFill(400, 260, 220, 46);
-    slSetForeColor(1, 1, 1, 1);
-    font.drawText("START GAME", 335, 250, 16, 20, 12);
+    drawButton(400, 310, 220, 46, Loc::tr("menu.start"), menuSelectedIndex == 0);
+    drawButton(400, 240, 220, 46, Loc::tr("menu.encyclopedia"), menuSelectedIndex == 1);
+    drawButton(400, 170, 220, 46, Loc::tr("menu.language"), menuSelectedIndex == 2);
+    drawButton(400, 100, 220, 46, Loc::tr("menu.exit"), menuSelectedIndex == 3);
 
-    // Encyclopedia button
-    slSetForeColor(0.1, 0.15, 0.3, 0.85);
-    slRectangleFill(400, 190, 220, 46);
-    slSetForeColor(0.9, 0.9, 0.9, 1.0);
-    font.drawText("ENCYCLOPEDIA", 330, 180, 16, 20, 12);
-
-    // Exit button
-    slSetForeColor(0.1, 0.15, 0.3, 0.85);
-    slRectangleFill(400, 120, 220, 46);
-    slSetForeColor(0.9, 0.9, 0.9, 1.0);
-    font.drawText("QUIT GAME", 345, 110, 16, 20, 12);
-
-    // Debug label
     if (debugMode) {
         slSetForeColor(1.0, 0.2, 0.2, 1.0);
-        font.drawText("[DEBUG LEVEL TIMERS ACTIVE]", 230, 50, 14, 18, 10);
+        drawCenteredText(Loc::tr("menu.debug_active"), 400, 45, 13, 16, 9);
     } else {
         slSetForeColor(0.4, 0.4, 0.4, 1.0);
-        font.drawText("PRESS [D] TO TOGGLE DEBUG MODE", 220, 50, 14, 18, 10);
+        drawCenteredText(Loc::tr("menu.debug"), 400, 45, 13, 16, 9);
     }
     slSetForeColor(1, 1, 1, 1);
 }
@@ -614,40 +846,33 @@ void Game::drawMenu() {
 void Game::drawGameOver() {
     slSprite(gameOverBgTex, 400, 300, 800, 600);
 
-    slSetForeColor(1.0, 0.1, 0.1, 1.0);
-    font.drawText("GAME OVER", 280, 450, 28, 36, 22);
-
     slSetForeColor(1, 1, 1, 1);
-    font.drawText("FAILED IN LEVEL " + to_string(currentLevel), 300, 380, 16, 20, 12);
-    font.drawText("FINAL SCORE: " + to_string(score), 310, 320, 16, 20, 12);
+    drawCenteredText(Loc::tr("gameover.failed") + to_string(currentLevel), 400, 380, 16, 20, 12);
+    drawCenteredText(Loc::tr("gameover.score") + to_string(score), 400, 320, 16, 20, 12);
 
-    // Retry Button
-    slSetForeColor(0.1, 0.3, 0.1, 0.85);
-    slRectangleFill(300, 160, 180, 46);
-    slSetForeColor(1, 1, 1, 1);
-    font.drawText("RETRY", 265, 150, 16, 20, 12);
-
-    // Exit Button
-    slSetForeColor(0.3, 0.1, 0.1, 0.85);
-    slRectangleFill(500, 160, 180, 46);
-    slSetForeColor(1, 1, 1, 1);
-    font.drawText("MENU", 470, 150, 16, 20, 12);
+    bool retryHovered = isHovered(300, 160, 180, 46);
+    bool menuHovered = isHovered(500, 160, 180, 46);
+    
+    drawButton(300, 160, 180, 46, Loc::tr("gameover.retry"), retryHovered);
+    drawButton(500, 160, 180, 46, Loc::tr("gameover.menu"), menuHovered);
 }
 
 void Game::drawInfoPopup() {
     if (!activeDiscovery) return;
 
-    // Dark semi-transparent box
-    slSetForeColor(0.02, 0.02, 0.05, 0.92);
-    slRectangleFill(400, 300, 650, 380);
-    slSetForeColor(0.3, 0.8, 1.0, 1.0);
+    slSetForeColor(0.04f, 0.02f, 0.1f, 0.94f);
+    drawRoundedRect(400, 300, 650, 380, 16.0f);
+    
+    slSetForeColor(0.5f, 0.25f, 0.75f, 1.0f);
     slRectangleOutline(400, 300, 650, 380);
 
     slSetForeColor(1.0, 0.9, 0.2, 1.0);
-    font.drawText("NEW DISCOVERY!", 260, 440, 20, 25, 16);
+    drawCenteredText(Loc::tr("popup.new_discovery"), 400, 440, 20, 25, 16);
 
     slSetForeColor(0.9, 0.9, 0.9, 1.0);
-    font.drawText(activeDiscovery->name, 100.0f + (600.0f - activeDiscovery->name.length()*14.0f)/2.0f, 395, 18, 22, 14);
+    string displayName = activeDiscovery->name;
+    replace(displayName.begin(), displayName.end(), '_', ' ');
+    drawCenteredText(displayName, 400, 395, 18, 22, 14);
 
     slSetForeColor(0.4, 0.4, 0.4, 1.0);
     slLine(120, 370, 680, 370);
@@ -655,24 +880,28 @@ void Game::drawInfoPopup() {
     slSetForeColor(0.9, 0.9, 0.9, 1.0);
     font.drawWrappedText(activeDiscovery->shortDescription, 120, 330, 560, 14, 18, 10, 24);
 
+    bool btnHovered = isHovered(400, 160, 200, 46);
+    drawButton(400, 160, 200, 46, Loc::tr("pause.resume"), btnHovered);
+    
     slSetForeColor(0.5, 0.5, 0.5, 1.0);
-    font.drawText("PRESS [ENTER] TO RESUME EXPLORATION", 210, 150, 12, 16, 9);
+    drawCenteredText(Loc::tr("popup.resume"), 400, 105, 11, 14, 8);
     slSetForeColor(1, 1, 1, 1);
 }
 
 void Game::drawLevelCompleteInfo() {
     if (!activeDiscovery) return;
 
-    slSetForeColor(0.02, 0.02, 0.06, 0.94);
-    slRectangleFill(400, 300, 700, 420);
-    slSetForeColor(0.2, 0.9, 0.2, 1.0);
+    slSetForeColor(0.04f, 0.02f, 0.1f, 0.94f);
+    drawRoundedRect(400, 300, 700, 420, 16.0f);
+    
+    slSetForeColor(0.5f, 0.25f, 0.75f, 1.0f);
     slRectangleOutline(400, 300, 700, 420);
 
     slSetForeColor(0.2, 0.9, 0.2, 1.0);
-    font.drawText("LEVEL COMPLETE!", 260, 460, 22, 28, 17);
+    drawCenteredText(Loc::tr("level.complete"), 400, 460, 22, 28, 17);
 
     slSetForeColor(0.6, 0.6, 0.6, 1.0);
-    font.drawText("LOG ENCRYPTED PHENOMENON:", 230, 420, 12, 15, 9);
+    drawCenteredText(Loc::tr("level.complete_log"), 400, 420, 12, 15, 9);
 
     slSetForeColor(0.4, 0.4, 0.4, 1.0);
     slLine(80, 395, 720, 395);
@@ -680,114 +909,151 @@ void Game::drawLevelCompleteInfo() {
     slSetForeColor(0.95, 0.95, 0.95, 1.0);
     font.drawWrappedText(activeDiscovery->longDescription, 85, 355, 630, 14, 18, 10, 24);
 
+    bool btnHovered = isHovered(400, 150, 220, 46);
+    drawButton(400, 150, 220, 46, Loc::tr("pause.resume"), btnHovered);
+
     slSetForeColor(1.0, 0.9, 0.2, 1.0);
-    font.drawText("PRESS [ENTER] FOR TRANSITION QUIZ", 210, 120, 12, 16, 9);
+    drawCenteredText(Loc::tr("level.complete_next"), 400, 100, 11, 14, 8);
     slSetForeColor(1, 1, 1, 1);
 }
 
 void Game::drawQuestion() {
     if (!activeDiscovery) return;
 
-    slSetForeColor(0.02, 0.02, 0.06, 0.94);
-    slRectangleFill(400, 300, 720, 450);
-    slSetForeColor(0.3, 0.8, 1.0, 1.0);
+    slSetForeColor(0.04f, 0.02f, 0.1f, 0.94f);
+    drawRoundedRect(400, 300, 720, 450, 16.0f);
+    
+    slSetForeColor(0.5f, 0.25f, 0.75f, 1.0f);
     slRectangleOutline(400, 300, 720, 450);
 
-    // Heading
     slSetForeColor(0.3, 0.8, 1.0, 1.0);
-    font.drawText("TRANSITION QUIZ - LEVEL " + to_string(currentLevel), 190, 480, 18, 22, 14);
+    drawCenteredText(Loc::tr("quiz.title") + to_string(currentLevel), 400, 480, 18, 22, 14);
 
     slSetForeColor(0.4, 0.4, 0.4, 1.0);
     slLine(60, 450, 740, 450);
 
-    // Question
     slSetForeColor(1.0, 0.9, 0.2, 1.0);
     font.drawWrappedText(activeDiscovery->question, 70, 410, 660, 15, 20, 11, 26);
 
-    // Options
     float optY = 320.0f;
     float optSpacingY = 36.0f;
     char optionLabel[] = "A";
 
     for (int i = 0; i < 4; ++i) {
+        float optionCenterY = optY - i * optSpacingY;
+        bool isOptHovered = !quizAnswered && isHovered(400, optionCenterY, 660, 30);
+        
+        if (isOptHovered && slGetMouseButton(SL_MOUSE_BUTTON_LEFT)) {
+            quizSelectedAnswer = i;
+            quizAnswered = true;
+            if (quizSelectedAnswer == activeDiscovery->correctAnswerIndex) {
+                quizAnswerCorrect = true;
+                score += 100;
+                slSoundPlay(winSfx);
+            } else {
+                quizAnswerCorrect = false;
+                slSoundPlay(hitSfx);
+            }
+        }
+        
+        if (isOptHovered) {
+            slSetForeColor(0.2f, 0.1f, 0.35f, 0.6f);
+            drawRoundedRect(400, optionCenterY, 660, 30, 6.0f);
+        }
+
         optionLabel[0] = 'A' + i;
-        std::string optionText = std::string(optionLabel) + ") " + activeDiscovery->options[i];
+        string optionText = string(optionLabel) + ") " + activeDiscovery->options[i];
         
         if (quizAnswered) {
             if (i == activeDiscovery->correctAnswerIndex) {
-                slSetForeColor(0.2, 0.9, 0.2, 1.0); // Green for correct answer
+                slSetForeColor(0.2, 0.9, 0.2, 1.0);
             } else if (i == quizSelectedAnswer) {
-                slSetForeColor(0.9, 0.2, 0.2, 1.0); // Red for selected wrong answer
+                slSetForeColor(0.9, 0.2, 0.2, 1.0);
             } else {
-                slSetForeColor(0.5, 0.5, 0.5, 1.0); // Grey for unselected wrong options
+                slSetForeColor(0.5, 0.5, 0.5, 1.0);
             }
         } else {
-            slSetForeColor(0.9, 0.9, 0.9, 1.0);
+            if (isOptHovered) {
+                slSetForeColor(1.0, 0.9, 0.2, 1.0);
+            } else {
+                slSetForeColor(0.9, 0.9, 0.9, 1.0);
+            }
         }
         
-        font.drawText(optionText, 80, optY - i * optSpacingY, 13, 16, 9);
+        font.drawText(optionText, 80, optionCenterY - 6.0f, 13, 16, 9);
     }
 
     slSetForeColor(0.4, 0.4, 0.4, 1.0);
     slLine(60, 180, 740, 180);
 
-    // Result or prompt
     if (!quizAnswered) {
         slSetForeColor(0.7, 0.7, 0.7, 1.0);
-        font.drawText("PRESS [A], [B], [C], OR [D] TO CHOOSE", 210, 135, 13, 16, 10);
+        drawCenteredText(Loc::tr("quiz.instructions"), 400, 135, 13, 16, 10);
     } else {
         if (quizAnswerCorrect) {
             slSetForeColor(0.2, 0.9, 0.2, 1.0);
-            font.drawText("CORRECT ANSWER! +100 SCORE", 230, 145, 14, 18, 11);
+            drawCenteredText(Loc::tr("quiz.correct"), 400, 145, 14, 18, 11);
         } else {
             slSetForeColor(0.9, 0.2, 0.2, 1.0);
-            std::string correctStr = std::string(1, 'A' + activeDiscovery->correctAnswerIndex);
-            font.drawText("INCORRECT! CORRECT ANSWER WAS: " + correctStr, 170, 145, 14, 18, 11);
+            string correctStr = string(1, 'A' + activeDiscovery->correctAnswerIndex);
+            drawCenteredText(Loc::tr("quiz.incorrect") + correctStr, 400, 145, 14, 18, 11);
         }
-        slSetForeColor(1.0, 0.9, 0.2, 1.0);
-        font.drawText("PRESS [ENTER] TO ENTER WORMHOLE", 230, 105, 12, 16, 9);
+        
+        bool btnHovered = isHovered(400, 105, 300, 36);
+        drawButton(400, 105, 300, 36, Loc::tr("quiz.next"), btnHovered);
     }
     slSetForeColor(1, 1, 1, 1);
 }
 
 void Game::drawWormholeTransition() {
-    // Visual effect: render background of level
-    slSprite(bgTex[currentLevel - 1], bgX1, 300, 800, 600);
-    slSprite(bgTex[currentLevel - 1], bgX2, 300, 800, 600);
+    if (currentLevel == 1) {
+        slSprite(deepSpaceTex, 400, 300, 800, 600);
+        slSprite(bgTex[0], 400, 300, 800, 600);
+    } else {
+        slSprite(bgTex[currentLevel - 1], bgX1, 300, 800, 600);
+        slSprite(bgTex[currentLevel - 1], bgX2, 300, 800, 600);
+    }
 
-    // Draw player inside wormhole
+    for (auto& obs : obstacles) {
+        obs.render();
+    }
+
     dragon.render();
 
-    // Draw wormhole overlay
     slPush();
     slTranslate(400, 300);
     slRotate(wormholeRotation);
     slSprite(wormholeTex, 0, 0, 800 * wormholeScale, 600 * wormholeScale);
     slPop();
+
+    if (wormholeTimer > 1.5f) {
+        float alpha = (wormholeTimer - 1.5f) / 0.7f;
+        if (alpha > 1.0f) alpha = 1.0f;
+        slSetForeColor(0, 0, 0, alpha);
+        slRectangleFill(400, 300, 800, 600);
+        slSetForeColor(1, 1, 1, 1);
+    }
 }
 
 void Game::drawEnding() {
-    // Render deep space background
     slSprite(bgTex[5], 400, 300, 800, 600);
 
-    // Semi transparent overlay
     slSetForeColor(0.01, 0.01, 0.03, 0.85);
     slRectangleFill(400, 300, 800, 600);
     slSetForeColor(1, 1, 1, 1);
 
     slSetForeColor(1.0, 0.9, 0.2, 1.0);
-    font.drawText("MISSION COMPLETE", 220, 480, 24, 30, 20);
+    drawCenteredText(Loc::tr("ending.title"), 400, 480, 24, 30, 20);
 
     slSetForeColor(0.9, 0.9, 0.9, 1.0);
-    font.drawWrappedText("The Dragon was pulled deep into the core of the Black Hole anomaly. Fulfilling the final sequence, it released its life energy - a force tied to Earth's vital ecosystems.", 100, 400, 600, 13, 16, 9, 22);
-
-    font.drawWrappedText("This energy successfully stabilized the gravitational distortions, saving Earth's system from collapse. In the story, the connection between biological life and cosmic gravity cores has been preserved.", 100, 310, 600, 13, 16, 9, 22);
+    font.drawWrappedText(Loc::tr("ending.text1"), 100, 400, 600, 13, 16, 9, 22);
+    font.drawWrappedText(Loc::tr("ending.text2"), 100, 310, 600, 13, 16, 9, 22);
 
     slSetForeColor(0.2, 0.9, 0.2, 1.0);
-    font.drawText("FINAL SCORE: " + to_string(score), 290, 200, 16, 20, 12);
+    drawCenteredText(Loc::tr("ending.score") + to_string(score), 400, 200, 16, 20, 12);
 
-    slSetForeColor(1.0, 0.9, 0.2, 1.0);
-    font.drawText("PRESS [ENTER] TO RETURN TO MENU", 230, 100, 13, 17, 10);
+    bool btnHovered = isHovered(400, 100, 320, 46);
+    drawButton(400, 100, 320, 46, Loc::tr("ending.return"), btnHovered);
     slSetForeColor(1, 1, 1, 1);
 }
 
@@ -798,7 +1064,6 @@ void Game::render() {
         drawMenu();
     } 
     else if (currentState == GameState::ENCYCLOPEDIA) {
-        // Draw background from menu
         slSprite(menuBgTex, 400, 300, 800, 600);
         encyclopediaManager.render(discoveryManager, font);
     }
@@ -812,19 +1077,27 @@ void Game::render() {
         drawWormholeTransition();
     }
     else {
-        // Active gameplay / popup screens
-        // Render backgrounds
-        slSprite(bgTex[currentLevel - 1], bgX1, 300, 800, 600);
-        slSprite(bgTex[currentLevel - 1], bgX2, 300, 800, 600);
+        // Active gameplay / popup screens / pause
+        if (currentLevel == 1) {
+            slSprite(deepSpaceTex, bgX1, 300, 800, 600);
+            slSprite(deepSpaceTex, bgX2, 300, 800, 600);
+            slSprite(bgTex[0], 400, 300, 800, 600);
+        } else {
+            slSprite(bgTex[currentLevel - 1], bgX1, 300, 800, 600);
+            slSprite(bgTex[currentLevel - 1], bgX2, 300, 800, 600);
+        }
 
-        // Render entities
         for (auto& obs : obstacles) {
             obs.render();
         }
         dragon.render();
 
-        // Render HUD
         drawHUD();
+
+        // Render Science Ticker when playing
+        if (currentState == GameState::PLAYING) {
+            drawScienceTicker((float)slGetDeltaTime());
+        }
 
         // Render popups over the game
         if (currentState == GameState::INFO_POPUP) {
@@ -835,6 +1108,17 @@ void Game::render() {
         } 
         else if (currentState == GameState::QUESTION) {
             drawQuestion();
+        }
+        else if (currentState == GameState::PAUSE) {
+            drawPauseMenu();
+        }
+
+        // Render fade-in overlay if active
+        if (currentState == GameState::PLAYING && fadeInTimer > 0.0f) {
+            float alpha = fadeInTimer / 0.6f;
+            slSetForeColor(0, 0, 0, alpha);
+            slRectangleFill(400, 300, 800, 600);
+            slSetForeColor(1, 1, 1, 1);
         }
     }
 }

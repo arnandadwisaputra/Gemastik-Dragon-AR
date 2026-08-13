@@ -31,4 +31,5 @@ private:
     float dashCooldownTimer = 0.0f;
 
     bool lastSpacePressed = false;
+    bool facingRight = true;
 };

@@ -10,6 +10,7 @@
 enum class GameState {
   MENU = 0,
   PLAYING,
+  PAUSE,
   INFO_POPUP,
   LEVEL_COMPLETE_INFO,
   QUESTION,
@@ -28,6 +29,7 @@ public:
 private:
   // Core states
   GameState currentState = GameState::MENU;
+  GameState previousState = GameState::MENU;
   int currentLevel = 1;
   float levelTimer = 0.0f;
   int lives = 3;
@@ -35,8 +37,13 @@ private:
   int highScore = 0;
   bool debugMode = false;
 
+  // Active selections
+  int menuSelectedIndex = 0;
+  int pauseSelectedIndex = 0;
+
   // Assets
   int bgTex[6];      // Backgrounds for levels 1-6
+  int deepSpaceTex;  // Deep space looping background for Level 1
   int menuBgTex;     // Main menu background
   int gameOverBgTex; // Game over background
   int heartTex;      // Heart icon for lives
@@ -71,8 +78,7 @@ private:
   float spawnTimer = 0.0f;
   float baseSpawnInterval = 1.8f;
   float difficultyMultiplier = 1.0f;
-  float difficultyRate =
-      0.015f; // Speed/spawn frequency increases by this rate per second
+  float difficultyRate = 0.015f; // Speed/spawn frequency increases by this rate per second
 
   // Active popup states
   const Discovery *activeDiscovery = nullptr;
@@ -88,15 +94,25 @@ private:
 
   // Dash ready text blink state
   float dashTextBlinkTimer = 0.0f;
+  float fadeInTimer = 0.0f;
 
   // Helper functions
   float getLevelDuration() const { return debugMode ? 10.0f : 180.0f; }
   bool isClicked(float x, float y, float w, float h);
+  bool isHovered(float x, float y, float w, float h);
   void resetLevel(int lvl);
   void startNextLevel();
   void spawnObstacle();
   void triggerInfoPopup(const std::string &name);
   void triggerLevelComplete();
+  
+  // Custom UI Design System Drawing Helpers
+  void drawRoundedRect(float x, float y, float w, float h, float r);
+  void drawCenteredText(const std::string& text, float centerX, float centerY, float sizeX = 16.0f, float sizeY = 20.0f, float spacing = 12.0f);
+  void drawButton(float x, float y, float w, float h, const std::string& label, bool isSelected);
+  void drawScienceTicker(float dt);
+  void drawPauseMenu();
+
   void drawHUD();
   void drawMenu();
   void drawGameOver();

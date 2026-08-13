@@ -12,7 +12,7 @@ void Asteroid::load() {
     if (!texturesLoaded) {
         // Load standard asteroid variations (used for type ASTEROID)
         for (int i = 0; i < 5; ++i) {
-            std::string path = Utils::getAssetPath("asteroid", std::to_string(i) + ".png");
+            std::string path = Utils::getAssetPath("obstacle", std::to_string(i) + ".png");
             baseAsteroidTexs[i] = slLoadTexture(path.c_str());
         }
 
@@ -46,6 +46,7 @@ void Asteroid::reset() {
     angle = 0.0f;
     rotSpeed = 0.0f;
     timer = 0.0f;
+    variation = 0;
 }
 
 void Asteroid::spawn(ObstacleType t, float startX, float startY, float vx, float vy, float sx, float sy) {
@@ -61,6 +62,7 @@ void Asteroid::spawn(ObstacleType t, float startX, float startY, float vx, float
     rotSpeed = (float)(rand() % 90 - 45); // Random rotation speed
     active = true;
     timer = 0.0f;
+    variation = rand() % 5; // Random variation 0-4
 
     // Adjust specific properties
     if (type == ObstacleType::BLACK_HOLE) {
@@ -86,9 +88,6 @@ void Asteroid::update(double dt, float speedMultiplier, float playerX, float pla
             active = false;
         }
     }
-
-    // Solar Flare custom rotation & movement behavior if needed
-    // (Solar flares just travel in their straight line direction across screen)
 
     // Gravity Well & Black Hole attraction physics
     if (type == ObstacleType::PULSAR || type == ObstacleType::GRAVITY_WELL || type == ObstacleType::BLACK_HOLE) {
@@ -120,7 +119,7 @@ void Asteroid::render() {
     int texture = 0;
     if (type == ObstacleType::ASTEROID) {
         // Use standard variations for asteroids
-        texture = baseAsteroidTexs[0];
+        texture = baseAsteroidTexs[variation];
     } else {
         auto it = obstacleTextures.find(type);
         if (it != obstacleTextures.end()) {

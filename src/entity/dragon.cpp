@@ -23,6 +23,7 @@ void Dragon::reset() {
     lastSpacePressed = false;
     frame = 0;
     animTime = 0.0;
+    facingRight = true;
 }
 
 void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) {
@@ -41,15 +42,20 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
     if (left) steerX = -speed;
     if (right) steerX = speed;
 
-    if (level <= 3) {
-        // Level 1-3: Vertical movement only
+    // Update horizontal flip direction based on steering keys
+    if (left) facingRight = false;
+    else if (right) facingRight = true;
+
+    if (level <= 2) {
+        // Level 1-2: Vertical movement only
         x = 200.0f;
         y += steerY * (float)dt;
         gravityVelX = 0.0f;
         gravityVelY = 0.0f;
+        facingRight = true; // Force face right on standard side-scrollers
     } 
-    else if (level == 4) {
-        // Level 4: 360 movement
+    else if (level == 3 || level == 4) {
+        // Level 3 and 4: 360 movement
         x += steerX * (float)dt;
         y += steerY * (float)dt;
         gravityVelX = 0.0f;
@@ -99,6 +105,10 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
         if (dashCooldownTimer > 0.0f) {
             dashCooldownTimer -= (float)dt;
         }
+        
+        // In Level 6, face away from the black hole center or just base on movement
+        if (gravityVelX < -20.0f) facingRight = false;
+        else if (gravityVelX > 20.0f) facingRight = true;
     }
 
     // Clamp inside window boundaries (except when sucked in in level 6)
@@ -124,5 +134,13 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
 }
 
 void Dragon::render() {
-    slSprite(tex[frame], x, y, 100, 100);
+    if (facingRight) {
+        slSprite(tex[frame], x, y, 100, 100);
+    } else {
+        slPush();
+        slTranslate(x, y);
+        slScale(-1.0, 1.0);
+        slSprite(tex[frame], 0, 0, 100, 100);
+        slPop();
+    }
 }
