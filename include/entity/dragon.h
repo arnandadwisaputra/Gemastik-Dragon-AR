@@ -32,4 +32,6 @@ private:
 
     bool lastSpacePressed = false;
     bool facingRight = true;
+    float renderOffsetX = 0.0f;
+    float renderOffsetY = 0.0f;
 };

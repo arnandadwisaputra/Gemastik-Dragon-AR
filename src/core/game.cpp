@@ -25,6 +25,9 @@ void Game::load() {
     gameOverBgTex = slLoadTexture(Utils::getAssetPath("ui", "game_over.jpg").c_str());
     heartTex = slLoadTexture(Utils::getAssetPath("ui", "heart.png").c_str());
 
+    // Load the main menu logo title sprite
+    menuTitleTex = slLoadTexture(Utils::getAssetPath("ui", "dragon-asteroid-run-title.png").c_str());
+
     // Load wormhole transition texture from effects directory
     wormholeTex = slLoadTexture(Utils::getAssetPath("effects", "wormhole-transition.png").c_str());
 
@@ -52,9 +55,13 @@ void Game::load() {
 
     srand((unsigned)time(NULL));
 
-    // Initialize selectors
+    // Initialize selectors and tracking
     menuSelectedIndex = 0;
     pauseSelectedIndex = 0;
+    gameOverSelectedIndex = 0;
+    quizSelectedIndex = 0;
+    lastMouseX = -1.0f;
+    lastMouseY = -1.0f;
     fadeInTimer = 0.0f;
 }
 
@@ -244,7 +251,7 @@ void Game::spawnObstacle() {
         flareDir = (flareDir + 1) % 4;
     } 
     else if (currentLevel == 4) {
-        // Level 4: Deep space diagonal comets + slow meteoroids + normal asteroids
+        // Level 4: Deep space comets + meteoroids + asteroids
         int r = rand() % 100;
         if (r < 35) {
             // Diagonal Comet (Fast)
@@ -280,9 +287,14 @@ void Game::spawnObstacle() {
 
 void Game::update() {
     float dt = (float)slGetDeltaTime();
-
-    // Clamp delta time to avoid physics breaks during lag spikes
     if (dt > 0.15f) dt = 0.15f;
+
+    // Track mouse coordinates to check for actual movement (hybrid input navigation)
+    float mx = (float)slGetMouseX();
+    float my = (float)slGetMouseY();
+    bool mouseMoved = (lastMouseX != -1.0f) && (mx != lastMouseX || my != lastMouseY);
+    lastMouseX = mx;
+    lastMouseY = my;
 
     // MENU STATE
     if (currentState == GameState::MENU) {
@@ -310,11 +322,13 @@ void Game::update() {
         lastUpMenu = upMenu;
         lastDownMenu = downMenu;
 
-        // Mouse hover selection update
-        if (isHovered(400, 310, 220, 46)) menuSelectedIndex = 0;
-        else if (isHovered(400, 240, 220, 46)) menuSelectedIndex = 1;
-        else if (isHovered(400, 170, 220, 46)) menuSelectedIndex = 2;
-        else if (isHovered(400, 100, 220, 46)) menuSelectedIndex = 3;
+        // Mouse hover selection update (only if mouse coordinates actually changed)
+        if (mouseMoved) {
+            if (isHovered(400, 310, 220, 46)) menuSelectedIndex = 0;
+            else if (isHovered(400, 240, 220, 46)) menuSelectedIndex = 1;
+            else if (isHovered(400, 170, 220, 46)) menuSelectedIndex = 2;
+            else if (isHovered(400, 100, 220, 46)) menuSelectedIndex = 3;
+        }
 
         static bool lastEnter = false;
         static bool lastSpace = false;
@@ -390,10 +404,12 @@ void Game::update() {
         lastUpPause = upPause;
         lastDownPause = downPause;
 
-        // Mouse hover selection update
-        if (isHovered(400, 320, 220, 46)) pauseSelectedIndex = 0;
-        else if (isHovered(400, 250, 220, 46)) pauseSelectedIndex = 1;
-        else if (isHovered(400, 180, 220, 46)) pauseSelectedIndex = 2;
+        // Mouse hover selection update (only if mouse coordinates actually changed)
+        if (mouseMoved) {
+            if (isHovered(400, 320, 220, 46)) pauseSelectedIndex = 0;
+            else if (isHovered(400, 250, 220, 46)) pauseSelectedIndex = 1;
+            else if (isHovered(400, 180, 220, 46)) pauseSelectedIndex = 2;
+        }
 
         static bool lastEnterP = false;
         static bool lastSpaceP = false;
@@ -432,9 +448,24 @@ void Game::update() {
 
     // GAME OVER STATE
     if (currentState == GameState::GAME_OVER) {
-        bool retryHovered = isHovered(300, 160, 180, 46);
-        bool menuHovered = isHovered(500, 160, 180, 46);
+        static bool lastLeftGO = false;
+        static bool lastRightGO = false;
+        bool leftGO = slGetKey(SL_KEY_LEFT) || slGetKey('A') || slGetKey(SL_KEY_UP) || slGetKey('W');
+        bool rightGO = slGetKey(SL_KEY_RIGHT) || slGetKey('D') || slGetKey(SL_KEY_DOWN) || slGetKey('S');
         
+        if ((leftGO && !lastLeftGO) || (rightGO && !lastRightGO)) {
+            gameOverSelectedIndex = (gameOverSelectedIndex + 1) % 2;
+            slSoundPlay(selectSfx);
+        }
+        lastLeftGO = leftGO;
+        lastRightGO = rightGO;
+
+        // Mouse hover selection update (only if mouse coordinates actually changed)
+        if (mouseMoved) {
+            if (isHovered(300, 160, 180, 46)) gameOverSelectedIndex = 0;
+            else if (isHovered(500, 160, 180, 46)) gameOverSelectedIndex = 1;
+        }
+
         static bool lastEnterGO = false;
         static bool lastSpaceGO = false;
         bool enterGO = slGetKey(SL_KEY_ENTER);
@@ -447,13 +478,13 @@ void Game::update() {
             bool clickedRetry = isClicked(300, 160, 180, 46);
             bool clickedMenu = isClicked(500, 160, 180, 46);
 
-            if ((activatedGO && retryHovered) || clickedRetry || (activatedGO && !menuHovered)) {
+            if ((activatedGO && gameOverSelectedIndex == 0) || clickedRetry) {
                 lives = 3;
                 resetLevel(currentLevel);
                 currentState = GameState::PLAYING;
                 slSoundPlay(selectSfx);
             }
-            else if ((activatedGO && menuHovered) || clickedMenu) {
+            else if ((activatedGO && gameOverSelectedIndex == 1) || clickedMenu) {
                 currentState = GameState::MENU;
                 slSoundPlay(selectSfx);
             }
@@ -484,6 +515,7 @@ void Game::update() {
         if (slGetKey(SL_KEY_ENTER) || slGetKey(' ') || isClicked(400, 150, 220, 46)) {
             currentState = GameState::QUESTION;
             quizSelectedAnswer = -1;
+            quizSelectedIndex = 0; // Reset question index to first option (A)
             quizAnswered = false;
             slSoundPlay(selectSfx);
         }
@@ -492,12 +524,55 @@ void Game::update() {
 
     if (currentState == GameState::QUESTION) {
         if (!quizAnswered) {
-            if (slGetKey('A')) quizSelectedAnswer = 0;
-            else if (slGetKey('B')) quizSelectedAnswer = 1;
-            else if (slGetKey('C')) quizSelectedAnswer = 2;
-            else if (slGetKey('D')) quizSelectedAnswer = 3;
+            static bool lastUpQ = false;
+            static bool lastDownQ = false;
+            bool upQ = slGetKey(SL_KEY_UP) || slGetKey('W');
+            bool downQ = slGetKey(SL_KEY_DOWN) || slGetKey('S');
+            
+            if (upQ && !lastUpQ) {
+                quizSelectedIndex = (quizSelectedIndex - 1 + 5) % 5;
+                slSoundPlay(selectSfx);
+            }
+            if (downQ && !lastDownQ) {
+                quizSelectedIndex = (quizSelectedIndex + 1) % 5;
+                slSoundPlay(selectSfx);
+            }
+            lastUpQ = upQ;
+            lastDownQ = downQ;
 
-            if (quizSelectedAnswer != -1) {
+            // Mouse hover selection update (only if mouse coordinates actually changed)
+            if (mouseMoved) {
+                float optY = 320.0f;
+                float optSpacingY = 36.0f;
+                for (int i = 0; i < 4; ++i) {
+                    if (isHovered(400, optY - i * optSpacingY, 660, 30)) {
+                        quizSelectedIndex = i;
+                    }
+                }
+                if (isHovered(400, 100, 240, 36)) {
+                    quizSelectedIndex = 4;
+                }
+            }
+
+            int directAnswer = -1;
+            if (slGetKey('A')) directAnswer = 0;
+            else if (slGetKey('B')) directAnswer = 1;
+            else if (slGetKey('C')) directAnswer = 2;
+            else if (slGetKey('D')) directAnswer = 3;
+
+            bool shortcutBack = slGetKey('I'); // 'I' shortcut for Back to Info
+
+            static bool lastEnterQ = false;
+            static bool lastSpaceQ = false;
+            bool enterQ = slGetKey(SL_KEY_ENTER);
+            bool spaceQ = slGetKey(' ');
+            bool activatedQ = (enterQ && !lastEnterQ) || (spaceQ && !lastSpaceQ);
+            lastEnterQ = enterQ;
+            lastSpaceQ = spaceQ;
+
+            // Process option clicks or keys
+            if (directAnswer != -1) {
+                quizSelectedAnswer = directAnswer;
                 quizAnswered = true;
                 if (quizSelectedAnswer == activeDiscovery->correctAnswerIndex) {
                     quizAnswerCorrect = true;
@@ -505,7 +580,50 @@ void Game::update() {
                     slSoundPlay(winSfx);
                 } else {
                     quizAnswerCorrect = false;
+                    score -= 50;
+                    if (score < 0) score = 0;
                     slSoundPlay(hitSfx);
+                }
+            }
+            else if (shortcutBack || (activatedQ && quizSelectedIndex == 4) || isClicked(400, 100, 240, 36)) {
+                currentState = GameState::LEVEL_COMPLETE_INFO;
+                slSoundPlay(selectSfx);
+            }
+            else if (activatedQ && quizSelectedIndex >= 0 && quizSelectedIndex <= 3) {
+                quizSelectedAnswer = quizSelectedIndex;
+                quizAnswered = true;
+                if (quizSelectedAnswer == activeDiscovery->correctAnswerIndex) {
+                    quizAnswerCorrect = true;
+                    score += 100;
+                    slSoundPlay(winSfx);
+                } else {
+                    quizAnswerCorrect = false;
+                    score -= 50;
+                    if (score < 0) score = 0;
+                    slSoundPlay(hitSfx);
+                }
+            }
+            else {
+                // Check mouse clicks on options A-D directly
+                float optY = 320.0f;
+                float optSpacingY = 36.0f;
+                for (int i = 0; i < 4; ++i) {
+                    float optionCenterY = optY - i * optSpacingY;
+                    if (isClicked(400, optionCenterY, 660, 30)) {
+                        quizSelectedAnswer = i;
+                        quizAnswered = true;
+                        if (quizSelectedAnswer == activeDiscovery->correctAnswerIndex) {
+                            quizAnswerCorrect = true;
+                            score += 100;
+                            slSoundPlay(winSfx);
+                        } else {
+                            quizAnswerCorrect = false;
+                            score -= 50;
+                            if (score < 0) score = 0;
+                            slSoundPlay(hitSfx);
+                        }
+                        break;
+                    }
                 }
             }
         } else {
@@ -559,7 +677,7 @@ void Game::update() {
 
         levelTimer += dt;
 
-        // Decement fade in timer
+        // Decrement fade in timer
         if (fadeInTimer > 0.0f) {
             fadeInTimer -= dt;
             if (fadeInTimer < 0.0f) fadeInTimer = 0.0f;
@@ -589,7 +707,7 @@ void Game::update() {
         float gravityAccY = 0.0f;
 
         if (currentLevel == 6) {
-            // Black Hole gravitational pull
+            // Black Hole gravitational pull (environmental core / central force)
             float dx = 400.0f - dragon.getX();
             float dy = 300.0f - dragon.getY();
             float dist = std::sqrt(dx * dx + dy * dy);
@@ -606,30 +724,41 @@ void Game::update() {
             }
 
             if (dist > 5.0f) {
-                // Pull increases as level time progresses
-                float G = 240000.0f + levelTimer * 50000.0f;
-                float force = G / (dist * dist);
-                if (force > 1500.0f) force = 1500.0f; // Limit extreme force
+                // Pull progression (pull increases as time progresses and as distance shrinks)
+                float basePull = 150.0f;
+                float timeFactor = levelTimer * 15.0f;
+                float closeFactor = 400.0f * (1.0f - dist / 400.0f);
+                if (closeFactor < 0.0f) closeFactor = 0.0f;
                 
-                gravityAccX = (dx / dist) * force;
-                gravityAccY = (dy / dist) * force;
+                float pullAcc = basePull + timeFactor + closeFactor;
+                
+                gravityAccX = (dx / dist) * pullAcc;
+                gravityAccY = (dy / dist) * pullAcc;
             }
         } 
         else if (currentLevel == 5) {
-            // Drifting gravity sources
+            // Drifting gravity sources (influence-radius based gravity)
             for (auto& obs : obstacles) {
                 if (obs.isActive() && (obs.getType() == ObstacleType::PULSAR || obs.getType() == ObstacleType::GRAVITY_WELL)) {
                     float dx = obs.getX() - dragon.getX();
                     float dy = obs.getY() - dragon.getY();
                     float dist = std::sqrt(dx * dx + dy * dy);
 
-                    if (dist > 25.0f) {
-                        float G = 150000.0f;
-                        float force = G / (dist * dist);
-                        if (force > 250.0f) force = 250.0f; // limit pull
+                    float influenceRadius = 250.0f;
+                    float innerRadius = 125.0f;
 
-                        gravityAccX += (dx / dist) * force;
-                        gravityAccY += (dy / dist) * force;
+                    if (dist < influenceRadius && dist > 5.0f) {
+                        float pullAcc = 0.0f;
+                        if (dist >= innerRadius) {
+                            // Outer zone: pull is lighter (0 to 200)
+                            pullAcc = 200.0f * ((influenceRadius - dist) / innerRadius);
+                        } else {
+                            // Inner zone: pull is stronger (200 to 600)
+                            pullAcc = 200.0f + 400.0f * ((innerRadius - dist) / innerRadius);
+                        }
+
+                        gravityAccX += (dx / dist) * pullAcc;
+                        gravityAccY += (dy / dist) * pullAcc;
                     }
                 }
             }
@@ -679,6 +808,7 @@ void Game::update() {
 
                     if (lives <= 0) {
                         currentState = GameState::GAME_OVER;
+                        gameOverSelectedIndex = 0; // Default index focus to Retry
                         if (score > highScore) {
                             highScore = score;
                             saveHighScore();
@@ -725,6 +855,7 @@ void Game::drawCenteredText(const string& text, float centerX, float centerY, fl
 }
 
 void Game::drawButton(float x, float y, float w, float h, const string& label, bool isSelected) {
+    // 1. Draw rounded borders and backgrounds
     if (isSelected) {
         slSetForeColor(0.7f, 0.4f, 0.9f, 1.0f); // Violet border
         drawRoundedRect(x, y, w + 4, h + 4, 12.0f);
@@ -739,13 +870,34 @@ void Game::drawButton(float x, float y, float w, float h, const string& label, b
         drawRoundedRect(x, y, w, h, 10.0f);
     }
     
+    // 2. Reusable text fitting calculation with padding
+    float paddingX = 16.0f;
+    float maxWidth = w - paddingX;
+    if (maxWidth < 20.0f) maxWidth = 20.0f;
+    
+    float baseSizeX = 15.0f;
+    float baseSizeY = 18.0f;
+    float baseSpacing = 11.0f;
+    
+    float baseWidth = label.length() * baseSpacing;
+    float scale = 1.0f;
+    if (baseWidth > maxWidth) {
+        scale = maxWidth / baseWidth;
+    }
+    
+    float sizeX = baseSizeX * scale;
+    float sizeY = baseSizeY * scale;
+    float spacing = baseSpacing * scale;
+    float offsetY = -7.0f * scale; // Adjust vertical centering offset proportionally
+    
+    // 3. Render text
     if (isSelected) {
         slSetForeColor(1.0f, 0.9f, 0.2f, 1.0f); // Yellow highlight text
     } else {
         slSetForeColor(0.9f, 0.9f, 0.9f, 1.0f);
     }
     
-    drawCenteredText(label, x, y - 7.0f, 15.0f, 18.0f, 11.0f);
+    drawCenteredText(label, x, y + offsetY, sizeX, sizeY, spacing);
     slSetForeColor(1, 1, 1, 1);
 }
 
@@ -825,6 +977,9 @@ void Game::drawHUD() {
 void Game::drawMenu() {
     slSprite(menuBgTex, 400, 300, 800, 600);
 
+    // Draw main menu logo title sprite instead of duplicate text
+    slSprite(menuTitleTex, 400, 480, 450, 110);
+
     slSetForeColor(1, 1, 1, 1);
     drawCenteredText(Loc::tr("menu.highscore") + to_string(highScore), 400, 380, 15, 20, 11);
 
@@ -850,11 +1005,8 @@ void Game::drawGameOver() {
     drawCenteredText(Loc::tr("gameover.failed") + to_string(currentLevel), 400, 380, 16, 20, 12);
     drawCenteredText(Loc::tr("gameover.score") + to_string(score), 400, 320, 16, 20, 12);
 
-    bool retryHovered = isHovered(300, 160, 180, 46);
-    bool menuHovered = isHovered(500, 160, 180, 46);
-    
-    drawButton(300, 160, 180, 46, Loc::tr("gameover.retry"), retryHovered);
-    drawButton(500, 160, 180, 46, Loc::tr("gameover.menu"), menuHovered);
+    drawButton(300, 160, 180, 46, Loc::tr("gameover.retry"), gameOverSelectedIndex == 0);
+    drawButton(500, 160, 180, 46, Loc::tr("gameover.menu"), gameOverSelectedIndex == 1);
 }
 
 void Game::drawInfoPopup() {
@@ -941,20 +1093,7 @@ void Game::drawQuestion() {
 
     for (int i = 0; i < 4; ++i) {
         float optionCenterY = optY - i * optSpacingY;
-        bool isOptHovered = !quizAnswered && isHovered(400, optionCenterY, 660, 30);
-        
-        if (isOptHovered && slGetMouseButton(SL_MOUSE_BUTTON_LEFT)) {
-            quizSelectedAnswer = i;
-            quizAnswered = true;
-            if (quizSelectedAnswer == activeDiscovery->correctAnswerIndex) {
-                quizAnswerCorrect = true;
-                score += 100;
-                slSoundPlay(winSfx);
-            } else {
-                quizAnswerCorrect = false;
-                slSoundPlay(hitSfx);
-            }
-        }
+        bool isOptHovered = !quizAnswered && (quizSelectedIndex == i);
         
         if (isOptHovered) {
             slSetForeColor(0.2f, 0.1f, 0.35f, 0.6f);
@@ -989,6 +1128,9 @@ void Game::drawQuestion() {
     if (!quizAnswered) {
         slSetForeColor(0.7, 0.7, 0.7, 1.0);
         drawCenteredText(Loc::tr("quiz.instructions"), 400, 135, 13, 16, 10);
+        
+        // Render Back to Info button (indices: A-D are 0-3, Back to Info is 4)
+        drawButton(400, 100, 240, 36, Loc::tr("quiz.back_to_info"), quizSelectedIndex == 4);
     } else {
         if (quizAnswerCorrect) {
             slSetForeColor(0.2, 0.9, 0.2, 1.0);

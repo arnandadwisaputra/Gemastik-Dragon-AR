@@ -24,6 +24,8 @@ void Dragon::reset() {
     frame = 0;
     animTime = 0.0;
     facingRight = true;
+    renderOffsetX = 0.0f;
+    renderOffsetY = 0.0f;
 }
 
 void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) {
@@ -53,6 +55,8 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
         gravityVelX = 0.0f;
         gravityVelY = 0.0f;
         facingRight = true; // Force face right on standard side-scrollers
+        renderOffsetX = 0.0f;
+        renderOffsetY = 0.0f;
     } 
     else if (level == 3 || level == 4) {
         // Level 3 and 4: 360 movement
@@ -60,6 +64,8 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
         y += steerY * (float)dt;
         gravityVelX = 0.0f;
         gravityVelY = 0.0f;
+        renderOffsetX = 0.0f;
+        renderOffsetY = 0.0f;
     }
     else if (level == 5) {
         // Level 5: 360 movement affected by gravity force
@@ -72,9 +78,21 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
 
         x += (steerX + gravityVelX) * (float)dt;
         y += (steerY + gravityVelY) * (float)dt;
+
+        // Visual shake offset based on gravityAcc magnitude
+        float gravityMag = std::sqrt(gravityAccX * gravityAccX + gravityAccY * gravityAccY);
+        if (gravityMag > 20.0f) {
+            float maxShake = 6.0f * (gravityMag / 600.0f); // Max 6 pixels shake
+            if (maxShake > 8.0f) maxShake = 8.0f;
+            renderOffsetX = ((rand() % 100) / 50.0f - 1.0f) * maxShake;
+            renderOffsetY = ((rand() % 100) / 50.0f - 1.0f) * maxShake;
+        } else {
+            renderOffsetX = 0.0f;
+            renderOffsetY = 0.0f;
+        }
     }
     else if (level == 6) {
-        // Level 6: Auto-pulled by black hole gravity, normal keys disabled, only dash is active
+        // Level 6: Auto-pulled by black hole gravity, steer is active, dash is active
         bool space = slGetKey(' ') || slGetKey(SL_KEY_ENTER);
 
         // Dash mechanic
@@ -96,14 +114,28 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
         gravityVelY += gravityAccY * (float)dt;
 
         // Apply friction
-        gravityVelX *= 0.96f;
-        gravityVelY *= 0.96f;
+        gravityVelX *= 0.95f;
+        gravityVelY *= 0.95f;
 
-        x += gravityVelX * (float)dt;
-        y += gravityVelY * (float)dt;
+        // Combined player steer and black hole pull
+        x += (steerX + gravityVelX) * (float)dt;
+        y += (steerY + gravityVelY) * (float)dt;
 
         if (dashCooldownTimer > 0.0f) {
             dashCooldownTimer -= (float)dt;
+        }
+        
+        // Visual shake offset based on distance to the black hole
+        float dx = x - 400.0f;
+        float dy = y - 300.0f;
+        float dist = std::sqrt(dx * dx + dy * dy);
+        if (dist < 200.0f) {
+            float maxShake = 8.0f * (1.0f - dist / 200.0f);
+            renderOffsetX = ((rand() % 100) / 50.0f - 1.0f) * maxShake;
+            renderOffsetY = ((rand() % 100) / 50.0f - 1.0f) * maxShake;
+        } else {
+            renderOffsetX = 0.0f;
+            renderOffsetY = 0.0f;
         }
         
         // In Level 6, face away from the black hole center or just base on movement
@@ -134,11 +166,13 @@ void Dragon::update(double dt, int level, float gravityAccX, float gravityAccY) 
 }
 
 void Dragon::render() {
+    float rx = x + renderOffsetX;
+    float ry = y + renderOffsetY;
     if (facingRight) {
-        slSprite(tex[frame], x, y, 100, 100);
+        slSprite(tex[frame], rx, ry, 100, 100);
     } else {
         slPush();
-        slTranslate(x, y);
+        slTranslate(rx, ry);
         slScale(-1.0, 1.0);
         slSprite(tex[frame], 0, 0, 100, 100);
         slPop();

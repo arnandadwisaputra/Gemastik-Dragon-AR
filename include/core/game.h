@@ -40,11 +40,18 @@ private:
   // Active selections
   int menuSelectedIndex = 0;
   int pauseSelectedIndex = 0;
+  int gameOverSelectedIndex = 0;
+  int quizSelectedIndex = 0;
+
+  // Mouse tracking
+  float lastMouseX = -1.0f;
+  float lastMouseY = -1.0f;
 
   // Assets
   int bgTex[6];      // Backgrounds for levels 1-6
   int deepSpaceTex;  // Deep space looping background for Level 1
   int menuBgTex;     // Main menu background
+  int menuTitleTex;  // Main menu title logo sprite
   int gameOverBgTex; // Game over background
   int heartTex;      // Heart icon for lives
   int wormholeTex;   // Wormhole sprite for transition

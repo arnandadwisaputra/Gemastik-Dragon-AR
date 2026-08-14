@@ -36,6 +36,7 @@ namespace Loc {
         {"quiz.correct", {"CORRECT ANSWER! +100 SCORE", "JAWABAN BENAR! +100 SKOR"}},
         {"quiz.incorrect", {"INCORRECT! CORRECT ANSWER WAS: ", "SALAH! JAWABAN YANG BENAR ADALAH: "}},
         {"quiz.next", {"PRESS [ENTER] TO ENTER WORMHOLE", "TEKAN [ENTER] UNTUK MASUK WORMHOLE"}},
+        {"quiz.back_to_info", {"BACK TO INFO", "KEMBALI KE INFORMASI"}},
         
         {"level.complete", {"LEVEL COMPLETE!", "LEVEL SELESAI!"}},
         {"level.complete_log", {"LOG ENCRYPTED PHENOMENON:", "LOG FENOMENA TERENKRIPSI:"}},
@@ -55,12 +56,30 @@ namespace Loc {
         {"hud.dash_ready", {"DASH READY [SPACEBAR]", "DASH SIAP [SPACEBAR]"}},
         {"hud.dash_charging", {"DASH CHARGING...", "MENGISI DASH..."}},
         
-        {"ticker.level1", {"ENVIRONMENT * NEAR EARTH: Earth's orbital environment contains artificial satellites and human-made orbital debris.", "LINGKUNGAN * DEKAT BUMI: Lingkungan orbit Bumi berisi satelit buatan dan puing-puing orbital buatan manusia."}},
-        {"ticker.level2", {"ENVIRONMENT * ASTEROID BELT: The main asteroid belt lies between the orbits of Mars and Jupiter.", "LINGKUNGAN * SABUK ASTEROID: Sabuk asteroid utama terletak di antara orbit Mars dan Jupiter."}},
-        {"ticker.level3", {"ENVIRONMENT * SOLAR ACTIVITY: Solar flares are sudden releases of energy from the Sun's atmosphere.", "LINGKUNGAN * AKTIVITAS MATAHARI: Suar matahari adalah pelepasan energi secara tiba-tiba dari atmosfer Matahari."}},
-        {"ticker.level4", {"ENVIRONMENT * DEEP SPACE: Deep space contains cosmic comets and meteoroids traveling at high velocities.", "LINGKUNGAN * LUAR ANGKASA DALAM: Luar angkasa dalam berisi komet kosmik dan meteoroid yang bergerak sangat cepat."}},
-        {"ticker.level5", {"ENVIRONMENT * GRAVITATIONAL DISTURBANCE: Nebula clouds and high-gravity pulsars warp the local space fabric.", "LINGKUNGAN * GANGGUAN GRAVITASI: Awan nebula dan pulsar gravitasi tinggi melengkungkan tatanan ruang lokal."}},
-        {"ticker.level6", {"ENVIRONMENT * EXTREME GRAVITY: The black hole's singularity exerts an inescapable gravitational pull.", "LINGKUNGAN * GRAVITASI EKSTREM: Singularitas lubang hitam memberikan tarikan gravitasi yang tak terhindarkan."}}
+        {"ticker.level1", {
+            "SCIENCE: Near-Earth space contains thousands of active satellites. • EXPLORATION TIP: Debris moves fast; react early! • GAME RULE: Use UP/DOWN or W/S keys to fly. • STORY: The Dragon ascends from Earth's atmosphere.",
+            "SAINS: Ruang dekat Bumi berisi ribuan satelit aktif. • TIPS EKSPLORASI: Puing bergerak cepat; bersiaplah awal! • ATURAN GAME: Gunakan tombol ATAS/BAWAH atau W/S untuk terbang. • CERITA: Sang Naga lepas landas dari atmosfer Bumi."
+        }},
+        {"ticker.level2", {
+            "SCIENCE: The Asteroid Belt contains millions of rocky bodies. • EXPLORATION TIP: Watch for canyon passages between asteroid columns! • GAME RULE: Survive the timer to complete the level. • STORY: Crossing the Mars-Jupiter boundary.",
+            "SAINS: Sabuk Asteroid berisi jutaan benda berbatu. • TIPS EKSPLORASI: Perhatikan jalur celah di antara kolom asteroid! • ATURAN GAME: Bertahanlah hingga waktu level habis untuk menyelesaikannya. • CERITA: Melewati batas Mars-Jupiter."
+        }},
+        {"ticker.level3", {
+            "SCIENCE: Solar flares release massive magnetic energy from the Sun. • EXPLORATION TIP: Flares can come from any of the 4 borders! • GAME RULE: Level 3 allows 4-direction movement. • STORY: The Sun's radiation is at its peak.",
+            "SAINS: Suar matahari melepaskan energi magnetik besar dari Matahari. • TIPS EKSPLORASI: Suar dapat muncul dari salah satu dari 4 sisi layar! • ATURAN GAME: Level 3 mengizinkan gerakan ke 4 arah. • CERITA: Radiasi Matahari berada pada puncaknya."
+        }},
+        {"ticker.level4", {
+            "SCIENCE: Comets develop a tail when heated by solar wind. • EXPLORATION TIP: Comets travel diagonally; dodge carefully! • GAME RULE: 360-degree free flight is active. • STORY: Deep space is silent but dangerous.",
+            "SAINS: Komet membentuk ekor ketika dipanaskan oleh angin matahari. • TIPS EKSPLORASI: Komet bergerak secara diagonal; menghindarlah dengan hati-hati! • ATURAN GAME: Terbang bebas 360 derajat aktif. • CERITA: Luar angkasa dalam itu sunyi namun berbahaya."
+        }},
+        {"ticker.level5", {
+            "SCIENCE: Pulsars are rotating neutron stars emitting radiation beams. • EXPLORATION TIP: Gravity Wells will pull you in; steer away! • GAME RULE: Watch for the visual shake when caught in gravity. • STORY: Approaching the strong nebula distortions.",
+            "SAINS: Pulsar adalah bintang neutron berputar yang memancarkan radiasi. • TIPS EKSPLORASI: Sumur Gravitasi akan menarik Anda; terbanglah menjauh! • ATURAN GAME: Perhatikan getaran visual saat terjebak gravitasi. • CERITA: Mendekati distorsi nebula yang kuat."
+        }},
+        {"ticker.level6", {
+            "SCIENCE: Not even light can escape a black hole's event horizon. • EXPLORATION TIP: Use dash (SPACEBAR) to temporarily escape the central pull! • GAME RULE: Normal keys are disabled; only dash works. • STORY: The final sequence: saving Earth's core.",
+            "SAINS: Bahkan cahaya tidak dapat lepas dari horizon peristiwa lubang hitam. • TIPS EKSPLORASI: Gunakan dash (SPACEBAR) untuk lolos sementara dari tarikan pusat! • ATURAN GAME: Tombol gerakan normal dinonaktifkan; hanya dash yang berfungsi. • CERITA: Urutan terakhir: menyelamatkan inti Bumi."
+        }}
     };
 
     void setLanguage(Language lang) {
