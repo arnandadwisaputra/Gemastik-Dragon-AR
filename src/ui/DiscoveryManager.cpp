@@ -10,7 +10,7 @@ DiscoveryManager::~DiscoveryManager() {}
 
 void DiscoveryManager::init() {
     discoveries.clear();
-    for (int i = 0; i < 9; ++i) {
+    for (int i = 0; i < 10; ++i) {
         Discovery d;
         d.id = i + 1;
         d.discovered = false;
@@ -25,15 +25,18 @@ void DiscoveryManager::init() {
         else if (i == 6) d.correctAnswerIndex = 3; // D
         else if (i == 7) d.correctAnswerIndex = 0; // A
         else if (i == 8) d.correctAnswerIndex = 1; // B
+        else if (i == 9) d.correctAnswerIndex = 0; // A (Earth - unused quiz)
         
-        d.options.resize(4);
+        if (i < 9) {
+            d.options.resize(4);
+        }
         discoveries.push_back(d);
     }
     localize(Language::ENGLISH);
 }
 
 void DiscoveryManager::localize(Language lang) {
-    if (discoveries.size() < 9) return;
+    if (discoveries.size() < 10) return;
     
     if (lang == Language::ENGLISH) {
         // 1. ASTEROID
@@ -98,6 +101,13 @@ void DiscoveryManager::localize(Language lang) {
         discoveries[8].longDescription = "A black hole is a region of spacetime where gravity is so strong that nothing, not even light, can escape from it. It is formed when a massive star collapses under its own gravity at the end of its life.";
         discoveries[8].question = "What is the boundary around a black hole called?";
         discoveries[8].options = {"Gravity well", "Event horizon", "Aura limit", "Nebula boundary"};
+
+        // 10. EARTH (Main Encyclopedia - unlocked post-game)
+        discoveries[9].name = "EARTH";
+        discoveries[9].shortDescription = "EARTH: The only planet currently known to support life.";
+        discoveries[9].longDescription = "Earth is the planet we call home and the only planet currently known to support life.\n\nAfter travelling across the universe, perhaps the most important world to understand is the one beneath our feet.";
+        discoveries[9].question = "";
+        discoveries[9].options.clear();
         
     } else {
         // 1. ASTEROID
@@ -162,6 +172,13 @@ void DiscoveryManager::localize(Language lang) {
         discoveries[8].longDescription = "Lubang hitam adalah wilayah ruang-waktu di mana gravitasi sangat kuat sehingga tidak ada apa pun, bahkan cahaya, yang dapat melarikan diri darinya. Ini terbentuk ketika bintang masif runtuh di bawah gravitasinya sendiri di akhir masa hidupnya.";
         discoveries[8].question = "Apa nama batas di sekitar lubang hitam?";
         discoveries[8].options = {"Sumur gravitasi", "Horizon peristiwa", "Batas aura", "Batas nebula"};
+
+        // 10. EARTH
+        discoveries[9].name = "EARTH";
+        discoveries[9].shortDescription = "BUMI: Satu-satunya planet yang saat ini diketahui menopang kehidupan.";
+        discoveries[9].longDescription = "Bumi adalah planet yang kita sebut rumah dan satu-satunya planet yang saat ini diketahui dapat menopang kehidupan.\n\nSetelah melakukan perjalanan melintasi alam semesta, mungkin dunia yang paling penting untuk dipahami adalah dunia di bawah kaki kita.";
+        discoveries[9].question = "";
+        discoveries[9].options.clear();
     }
 }
 

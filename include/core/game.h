@@ -4,18 +4,24 @@
 #include "rendering/BitmapFont.h"
 #include "ui/DiscoveryManager.h"
 #include "ui/EncyclopediaManager.h"
+#include "core/VideoPlayer.h"
 #include <string>
 #include <vector>
 
 enum class GameState {
   MENU = 0,
+  OPENING_CUTSCENE,
+  GAMEPLAY_BRIEFING,
   PLAYING,
   PAUSE,
   INFO_POPUP,
   LEVEL_COMPLETE_INFO,
   QUESTION,
   WORMHOLE_TRANSITION,
+  MID_CUTSCENE,
   GAME_OVER,
+  ENDING_CUTSCENE,
+  MISSION_COMPLETE,
   ENDING,
   ENCYCLOPEDIA
 };
@@ -52,6 +58,8 @@ private:
   int deepSpaceTex;  // Deep space looping background for Level 1
   int menuBgTex;     // Main menu background
   int menuTitleTex;  // Main menu title logo sprite
+  int menuTitleWidth = 1;
+  int menuTitleHeight = 1;
   int gameOverBgTex; // Game over background
   int heartTex;      // Heart icon for lives
   int wormholeTex;   // Wormhole sprite for transition
@@ -75,6 +83,8 @@ private:
   BitmapFont font;
   DiscoveryManager discoveryManager;
   EncyclopediaManager encyclopediaManager;
+  VideoPlayer videoPlayer;
+  bool musicPlaying = false;
 
   // Background scrolling
   float bgX1 = 400.0f;
@@ -112,6 +122,10 @@ private:
   void spawnObstacle();
   void triggerInfoPopup(const std::string &name);
   void triggerLevelComplete();
+  void stopGameMusic();
+  void startGameMusic();
+  void beginCutscene(const std::string &videoFile);
+  void finishCutscene();
   
   // Custom UI Design System Drawing Helpers
   void drawRoundedRect(float x, float y, float w, float h, float r);
@@ -122,6 +136,8 @@ private:
 
   void drawHUD();
   void drawMenu();
+  void drawGameplayBriefing();
+  void drawMissionComplete();
   void drawGameOver();
   void drawInfoPopup();
   void drawLevelCompleteInfo();

@@ -9,16 +9,17 @@ EncyclopediaManager::EncyclopediaManager() : selectedIndex(0), lastUpPressed(fal
 EncyclopediaManager::~EncyclopediaManager() {}
 
 void EncyclopediaManager::update(DiscoveryManager& discoveryManager) {
+    entryCount = (int)discoveryManager.getAllDiscoveries().size();
+    if (entryCount <= 0) entryCount = 1;
+
     bool up = slGetKey(SL_KEY_UP);
     bool down = slGetKey(SL_KEY_DOWN);
 
-    // Arrow Up pressed
     if (up && !lastUpPressed) {
-        selectedIndex = (selectedIndex - 1 + 9) % 9;
+        selectedIndex = (selectedIndex - 1 + entryCount) % entryCount;
     }
-    // Arrow Down pressed
     if (down && !lastDownPressed) {
-        selectedIndex = (selectedIndex + 1) % 9;
+        selectedIndex = (selectedIndex + 1) % entryCount;
     }
 
     lastUpPressed = up;
@@ -46,8 +47,10 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
     float spacingY = 38.0f;
 
     auto& discoveries = discoveryManager.getAllDiscoveries();
+    entryCount = (int)discoveries.size();
+    if (entryCount <= 0) return;
 
-    for (int i = 0; i < 9; ++i) {
+    for (int i = 0; i < entryCount; ++i) {
         float y = startY - i * spacingY;
         bool isSelected = (i == selectedIndex);
         const auto& d = discoveries[i];
@@ -55,7 +58,9 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
         // Format name
         std::string displayName = d.name;
         std::replace(displayName.begin(), displayName.end(), '_', ' ');
-        if (!d.discovered) {
+        if (d.name == "EARTH" && d.discovered) {
+            displayName = (Loc::getLanguage() == Language::INDONESIAN) ? "BUMI — RUMAH YANG KITA KENAL" : "EARTH — OUR KNOWN HOME";
+        } else if (!d.discovered) {
             displayName = (Loc::getLanguage() == Language::INDONESIAN) ? "??? TERKUNCI ???" : "??? LOCKED ???";
         }
 
@@ -78,7 +83,7 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
     slLine(320, 100, 320, 480);
 
     // 4. Draw Right Area (Details of selected entry)
-    if (selectedIndex >= 0 && selectedIndex < 9) {
+    if (selectedIndex >= 0 && selectedIndex < entryCount) {
         const auto& d = discoveries[selectedIndex];
         float detailX = 350.0f;
 
@@ -87,6 +92,9 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
             slSetForeColor(1.0, 0.9, 0.2, 1.0); // Yellow
             std::string cleanName = d.name;
             std::replace(cleanName.begin(), cleanName.end(), '_', ' ');
+            if (d.name == "EARTH") {
+                cleanName = (Loc::getLanguage() == Language::INDONESIAN) ? "BUMI — RUMAH YANG KITA KENAL" : "EARTH — OUR KNOWN HOME";
+            }
             font.drawText(cleanName, detailX, 460, 22, 26, 17);
 
             // Category Label
@@ -122,4 +130,8 @@ void EncyclopediaManager::render(DiscoveryManager& discoveryManager, BitmapFont&
 
 void EncyclopediaManager::resetSelection() {
     selectedIndex = 0;
+}
+
+void EncyclopediaManager::selectEarthEntry() {
+    selectedIndex = 9;
 }

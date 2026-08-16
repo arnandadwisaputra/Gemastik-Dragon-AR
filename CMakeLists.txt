@@ -22,6 +22,7 @@ set(SOURCES
     ${SRC_DIR}/core/SceneManager.cpp
     ${SRC_DIR}/core/AudioManager.cpp
     ${SRC_DIR}/core/SaveManager.cpp
+    ${SRC_DIR}/core/VideoPlayer.cpp
     ${SRC_DIR}/entity/dragon.cpp
     ${SRC_DIR}/entity/asteroid.cpp
     ${SRC_DIR}/level/LevelManager.cpp
@@ -37,6 +38,10 @@ add_executable(DragonAsteroidRun ${SOURCES})
 target_link_libraries(DragonAsteroidRun PRIVATE
     ${LIB_DIR}/SIGIL/lib/sigil.lib
     opengl32
+    mf
+    mfplat
+    mfuuid
+    ole32
 )
 
 # Post-build: Copy DLLs to output directory

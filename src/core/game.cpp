@@ -26,7 +26,12 @@ void Game::load() {
     heartTex = slLoadTexture(Utils::getAssetPath("ui", "heart.png").c_str());
 
     // Load the main menu logo title sprite
-    menuTitleTex = slLoadTexture(Utils::getAssetPath("ui", "dragon-asteroid-run-title.png").c_str());
+    string titlePath = Utils::getAssetPath("ui", "dragon-asteroid-run-title.jpeg");
+    menuTitleTex = slLoadTexture(titlePath.c_str());
+    if (!Utils::getImageDimensions(titlePath, menuTitleWidth, menuTitleHeight)) {
+        menuTitleWidth = 450;
+        menuTitleHeight = 110;
+    }
 
     // Load wormhole transition texture from effects directory
     wormholeTex = slLoadTexture(Utils::getAssetPath("effects", "wormhole-transition.png").c_str());
@@ -38,6 +43,7 @@ void Game::load() {
     selectSfx = slLoadWAV(Utils::getAssetPath("audio", "hit.wav").c_str());
 
     slSoundLoop(bgm);
+    musicPlaying = true;
 
     // 3. Load Managers
     font.load();
@@ -131,11 +137,41 @@ void Game::resetLevel(int lvl) {
 void Game::startNextLevel() {
     currentLevel++;
     if (currentLevel > 6) {
-        currentState = GameState::ENDING;
+        beginCutscene("ending.mp4");
+        currentState = GameState::ENDING_CUTSCENE;
     } else {
         resetLevel(currentLevel);
         currentState = GameState::PLAYING;
     }
+}
+
+void Game::stopGameMusic() {
+    if (musicPlaying) {
+        slSoundStop(bgm);
+        musicPlaying = false;
+    }
+}
+
+void Game::startGameMusic() {
+    if (!musicPlaying) {
+        slSoundLoop(bgm);
+        musicPlaying = true;
+    }
+}
+
+void Game::beginCutscene(const string& videoFile) {
+    stopGameMusic();
+    videoPlayer.close();
+    string path = Utils::getAssetPath("video", videoFile);
+    if (!videoPlayer.open(path)) {
+        std::cerr << "Failed to open cutscene: " << path << std::endl;
+    } else {
+        videoPlayer.play();
+    }
+}
+
+void Game::finishCutscene() {
+    videoPlayer.close();
 }
 
 void Game::triggerInfoPopup(const string& name) {
@@ -347,10 +383,10 @@ void Game::update() {
 
             if ((activated && menuSelectedIndex == 0) || clickedStart) {
                 slSoundPlay(selectSfx);
-                currentState = GameState::PLAYING;
-                resetLevel(1);
                 score = 0;
                 lives = 3;
+                beginCutscene("opening.mp4");
+                currentState = GameState::OPENING_CUTSCENE;
             }
             else if ((activated && menuSelectedIndex == 1) || clickedEnc) {
                 slSoundPlay(selectSfx);
@@ -376,12 +412,109 @@ void Game::update() {
         return;
     }
 
+    // OPENING CUTSCENE
+    if (currentState == GameState::OPENING_CUTSCENE) {
+        if (!videoPlayer.isOpen()) {
+            finishCutscene();
+            currentState = GameState::GAMEPLAY_BRIEFING;
+            startGameMusic();
+            return;
+        }
+        videoPlayer.update();
+        if (videoPlayer.isFinished()) {
+            finishCutscene();
+            currentState = GameState::GAMEPLAY_BRIEFING;
+            startGameMusic();
+        }
+        return;
+    }
+
+    // GAMEPLAY BRIEFING
+    if (currentState == GameState::GAMEPLAY_BRIEFING) {
+        static bool lastEnterBrief = false;
+        static bool lastSpaceBrief = false;
+        bool enterBrief = slGetKey(SL_KEY_ENTER);
+        bool spaceBrief = slGetKey(' ');
+        bool activatedBrief = (enterBrief && !lastEnterBrief) || (spaceBrief && !lastSpaceBrief);
+        lastEnterBrief = enterBrief;
+        lastSpaceBrief = spaceBrief;
+
+        if (activatedBrief || isClicked(400, 100, 220, 46)) {
+            slSoundPlay(selectSfx);
+            resetLevel(1);
+            currentState = GameState::PLAYING;
+            startGameMusic();
+        }
+        return;
+    }
+
+    // MID CUTSCENE (after Level 5)
+    if (currentState == GameState::MID_CUTSCENE) {
+        if (!videoPlayer.isOpen()) {
+            finishCutscene();
+            resetLevel(6);
+            currentState = GameState::PLAYING;
+            startGameMusic();
+            return;
+        }
+        videoPlayer.update();
+        if (videoPlayer.isFinished()) {
+            finishCutscene();
+            resetLevel(6);
+            currentState = GameState::PLAYING;
+            startGameMusic();
+        }
+        return;
+    }
+
+    // ENDING CUTSCENE (after Level 6)
+    if (currentState == GameState::ENDING_CUTSCENE) {
+        if (!videoPlayer.isOpen()) {
+            finishCutscene();
+            currentState = GameState::MISSION_COMPLETE;
+            startGameMusic();
+            return;
+        }
+        videoPlayer.update();
+        if (videoPlayer.isFinished()) {
+            finishCutscene();
+            currentState = GameState::MISSION_COMPLETE;
+            startGameMusic();
+        }
+        return;
+    }
+
+    // MISSION COMPLETE
+    if (currentState == GameState::MISSION_COMPLETE) {
+        static bool lastEnterMission = false;
+        static bool lastSpaceMission = false;
+        bool enterMission = slGetKey(SL_KEY_ENTER);
+        bool spaceMission = slGetKey(' ');
+        bool activatedMission = (enterMission && !lastEnterMission) || (spaceMission && !lastSpaceMission);
+        lastEnterMission = enterMission;
+        lastSpaceMission = spaceMission;
+
+        if (activatedMission || isClicked(400, 90, 220, 46)) {
+            slSoundPlay(selectSfx);
+            bool isNew = false;
+            discoveryManager.unlockPhenomenon("EARTH", isNew);
+            previousState = GameState::MISSION_COMPLETE;
+            currentState = GameState::ENCYCLOPEDIA;
+            encyclopediaManager.selectEarthEntry();
+        }
+        return;
+    }
+
     // ENCYCLOPEDIA STATE
     if (currentState == GameState::ENCYCLOPEDIA) {
         encyclopediaManager.update(discoveryManager);
         if (slGetKey(SL_KEY_ESCAPE)) {
             currentState = previousState;
             slSoundPlay(selectSfx);
+            if (previousState == GameState::MISSION_COMPLETE) {
+                currentState = GameState::MENU;
+                startGameMusic();
+            }
         }
         return;
     }
@@ -437,6 +570,7 @@ void Game::update() {
             else if ((activatedPause && pauseSelectedIndex == 2) || clickedMenu) {
                 currentState = GameState::MENU;
                 slSoundPlay(selectSfx);
+                startGameMusic();
                 if (score > highScore) {
                     highScore = score;
                     saveHighScore();
@@ -487,6 +621,7 @@ void Game::update() {
             else if ((activatedGO && gameOverSelectedIndex == 1) || clickedMenu) {
                 currentState = GameState::MENU;
                 slSoundPlay(selectSfx);
+                startGameMusic();
             }
         }
         return;
@@ -658,7 +793,12 @@ void Game::update() {
         dragon.setPosition(px + dx * 4.0f * dt, py + dy * 4.0f * dt);
 
         if (wormholeTimer >= 2.2f) {
-            startNextLevel();
+            if (currentLevel == 5) {
+                beginCutscene("mid.mp4");
+                currentState = GameState::MID_CUTSCENE;
+            } else {
+                startNextLevel();
+            }
         }
         return;
     }
@@ -714,12 +854,13 @@ void Game::update() {
 
             // Sucked in condition
             if (dist < 40.0f) {
-                currentState = GameState::ENDING;
                 slSoundPlay(winSfx);
                 if (score > highScore) {
                     highScore = score;
                     saveHighScore();
                 }
+                beginCutscene("ending.mp4");
+                currentState = GameState::ENDING_CUTSCENE;
                 return;
             }
 
@@ -977,8 +1118,17 @@ void Game::drawHUD() {
 void Game::drawMenu() {
     slSprite(menuBgTex, 400, 300, 800, 600);
 
-    // Draw main menu logo title sprite instead of duplicate text
-    slSprite(menuTitleTex, 400, 480, 450, 110);
+    // Draw main menu logo title sprite with preserved aspect ratio
+    float maxLogoW = 420.0f;
+    float maxLogoH = 140.0f;
+    float logoAspect = (float)menuTitleWidth / (float)menuTitleHeight;
+    float logoW = maxLogoW;
+    float logoH = logoW / logoAspect;
+    if (logoH > maxLogoH) {
+        logoH = maxLogoH;
+        logoW = logoH * logoAspect;
+    }
+    slSprite(menuTitleTex, 400, 480, logoW, logoH);
 
     slSetForeColor(1, 1, 1, 1);
     drawCenteredText(Loc::tr("menu.highscore") + to_string(highScore), 400, 380, 15, 20, 11);
@@ -995,6 +1145,70 @@ void Game::drawMenu() {
         slSetForeColor(0.4, 0.4, 0.4, 1.0);
         drawCenteredText(Loc::tr("menu.debug"), 400, 45, 13, 16, 9);
     }
+    slSetForeColor(1, 1, 1, 1);
+}
+
+void Game::drawGameplayBriefing() {
+    slSprite(menuBgTex, 400, 300, 800, 600);
+
+    slSetForeColor(0.5f, 0.25f, 0.75f, 1.0f);
+    drawRoundedRect(400, 300, 684, 464, 18.0f);
+
+    slSetForeColor(0.04f, 0.02f, 0.1f, 0.92f);
+    drawRoundedRect(400, 300, 680, 460, 16.0f);
+
+    slSetForeColor(1.0f, 0.9f, 0.2f, 1.0f);
+    drawCenteredText(Loc::tr("briefing.line1"), 400, 470, 18, 22, 14);
+
+    slSetForeColor(0.9f, 0.9f, 0.9f, 1.0f);
+    drawCenteredText(Loc::tr("briefing.line2"), 400, 430, 14, 18, 10);
+    drawCenteredText(Loc::tr("briefing.line3"), 400, 400, 14, 18, 10);
+    drawCenteredText(Loc::tr("briefing.line4"), 400, 360, 14, 18, 10);
+    drawCenteredText(Loc::tr("briefing.line5"), 400, 330, 14, 18, 10);
+    drawCenteredText(Loc::tr("briefing.line6"), 400, 300, 14, 18, 10);
+
+    slSetForeColor(0.3f, 0.8f, 1.0f, 1.0f);
+    drawCenteredText(Loc::tr("briefing.controls"), 400, 240, 13, 16, 9);
+    drawCenteredText(Loc::tr("briefing.dash"), 400, 210, 12, 15, 8);
+
+    bool btnHovered = isHovered(400, 100, 220, 46);
+    drawButton(400, 100, 220, 46, Loc::tr("briefing.continue"), btnHovered);
+    slSetForeColor(1, 1, 1, 1);
+}
+
+void Game::drawMissionComplete() {
+    slSprite(bgTex[5], 400, 300, 800, 600);
+
+    slSetForeColor(0.01f, 0.01f, 0.03f, 0.88f);
+    slRectangleFill(400, 300, 800, 600);
+
+    slSetForeColor(0.5f, 0.25f, 0.75f, 1.0f);
+    drawRoundedRect(400, 300, 704, 484, 18.0f);
+
+    slSetForeColor(0.04f, 0.02f, 0.1f, 0.94f);
+    drawRoundedRect(400, 300, 700, 480, 16.0f);
+
+    slSetForeColor(1.0f, 0.9f, 0.2f, 1.0f);
+    drawCenteredText(Loc::tr("mission.title"), 400, 490, 22, 28, 17);
+    drawCenteredText(Loc::tr("mission.subtitle"), 400, 450, 14, 18, 10);
+
+    slSetForeColor(0.4f, 0.4f, 0.4f, 1.0f);
+    slLine(80, 425, 720, 425);
+
+    slSetForeColor(0.9f, 0.9f, 0.9f, 1.0f);
+    font.drawWrappedText(Loc::tr("mission.line1"), 90, 395, 620, 13, 16, 9, 22);
+    font.drawWrappedText(Loc::tr("mission.line2"), 90, 340, 620, 13, 16, 9, 22);
+    font.drawWrappedText(Loc::tr("mission.line3"), 90, 280, 620, 13, 16, 9, 22);
+    font.drawWrappedText(Loc::tr("mission.line4"), 90, 230, 620, 13, 16, 9, 22);
+
+    slSetForeColor(0.2f, 0.9f, 0.2f, 1.0f);
+    drawCenteredText(Loc::tr("mission.line5"), 400, 175, 15, 19, 11);
+
+    slSetForeColor(1.0f, 0.9f, 0.2f, 1.0f);
+    drawCenteredText(Loc::tr("mission.hook"), 400, 140, 13, 16, 9);
+
+    bool btnHovered = isHovered(400, 90, 220, 46);
+    drawButton(400, 90, 220, 46, Loc::tr("mission.continue"), btnHovered);
     slSetForeColor(1, 1, 1, 1);
 }
 
@@ -1204,7 +1418,20 @@ void Game::render() {
 
     if (currentState == GameState::MENU) {
         drawMenu();
-    } 
+    }
+    else if (currentState == GameState::OPENING_CUTSCENE ||
+             currentState == GameState::MID_CUTSCENE ||
+             currentState == GameState::ENDING_CUTSCENE) {
+        slSetForeColor(0, 0, 0, 1);
+        slRectangleFill(400, 300, 800, 600);
+        slSetForeColor(1, 1, 1, 1);
+    }
+    else if (currentState == GameState::GAMEPLAY_BRIEFING) {
+        drawGameplayBriefing();
+    }
+    else if (currentState == GameState::MISSION_COMPLETE) {
+        drawMissionComplete();
+    }
     else if (currentState == GameState::ENCYCLOPEDIA) {
         slSprite(menuBgTex, 400, 300, 800, 600);
         encyclopediaManager.render(discoveryManager, font);
