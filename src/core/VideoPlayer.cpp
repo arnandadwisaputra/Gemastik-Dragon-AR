@@ -232,7 +232,7 @@ bool VideoPlayer::open(const std::string& path) {
         nullptr,
         WS_POPUP | WS_VISIBLE,
         x, y, w, h,
-        nullptr, // Independent top-level window
+        hwnd, // Set game window as owner
         nullptr,
         GetModuleHandleA(nullptr),
         nullptr
@@ -420,13 +420,56 @@ bool VideoPlayer::isOpen() const {
 }
 
 void VideoPlayer::close() {
+    if (!impl->opened) {
+        return;
+    }
+    ShowCursor(TRUE);
+    HWND gameHwnd = impl->parentHwnd;
+
+    // Log before close
+    if (gameHwnd) {
+        std::cout << "[VIDEO] Before close" << std::endl;
+        std::cout << "[WINDOW] game hwnd = " << gameHwnd << std::endl;
+        std::cout << "[WINDOW] IsWindow = " << (IsWindow(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] IsVisible = " << (IsWindowVisible(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] IsIconic = " << (IsIconic(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] IsZoomed = " << (IsZoomed(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] video hwnd = " << impl->videoHwnd << std::endl;
+    }
+
+    // Restore and show game window BEFORE closing the video
+    if (gameHwnd && IsWindow(gameHwnd)) {
+        if (IsIconic(gameHwnd)) {
+            ShowWindow(gameHwnd, SW_RESTORE);
+        }
+        ShowWindow(gameHwnd, SW_SHOW);
+        SetForegroundWindow(gameHwnd);
+        SetFocus(gameHwnd);
+        SetActiveWindow(gameHwnd);
+    }
+
     g_IsProgrammaticClose = true;
     impl->close();
     g_IsProgrammaticClose = false;
-    ShowCursor(TRUE);
-    if (impl->parentHwnd) {
-        ShowWindow(impl->parentHwnd, SW_SHOW);
-        SetForegroundWindow(impl->parentHwnd);
-        SetFocus(impl->parentHwnd);
+
+    // Log after close
+    if (gameHwnd) {
+        std::cout << "[VIDEO] After close" << std::endl;
+        std::cout << "[WINDOW] game hwnd = " << gameHwnd << std::endl;
+        std::cout << "[WINDOW] IsWindow = " << (IsWindow(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] IsVisible = " << (IsWindowVisible(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] IsIconic = " << (IsIconic(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+        std::cout << "[WINDOW] IsZoomed = " << (IsZoomed(gameHwnd) ? "TRUE" : "FALSE") << std::endl;
+    }
+
+    // Force focus again after closing the video window just in case focus was lost during destruction
+    if (gameHwnd && IsWindow(gameHwnd)) {
+        if (IsIconic(gameHwnd)) {
+            ShowWindow(gameHwnd, SW_RESTORE);
+        }
+        ShowWindow(gameHwnd, SW_SHOW);
+        SetForegroundWindow(gameHwnd);
+        SetFocus(gameHwnd);
+        SetActiveWindow(gameHwnd);
     }
 }
