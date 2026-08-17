@@ -162,6 +162,10 @@ void Game::startGameMusic() {
 void Game::beginCutscene(const string& videoFile) {
     stopGameMusic();
     videoPlayer.close();
+    HWND hwnd = FindWindowA(nullptr, "Dragon Asteroid Run");
+    if (hwnd) {
+        ShowWindow(hwnd, SW_HIDE);
+    }
     string path = Utils::getAssetPath("video", videoFile);
     if (!videoPlayer.open(path)) {
         std::cerr << "Failed to open cutscene: " << path << std::endl;
@@ -171,6 +175,13 @@ void Game::beginCutscene(const string& videoFile) {
 }
 
 void Game::finishCutscene() {
+    HWND hwnd = FindWindowA(nullptr, "Dragon Asteroid Run");
+    if (hwnd) {
+        ShowWindow(hwnd, SW_SHOW);
+        SetForegroundWindow(hwnd);
+        SetFocus(hwnd);
+        SetActiveWindow(hwnd);
+    }
     videoPlayer.close();
 }
 
@@ -453,7 +464,9 @@ void Game::update() {
         if (!videoPlayer.isOpen()) {
             finishCutscene();
             resetLevel(6);
-            currentState = GameState::PLAYING;
+            if (currentState != GameState::INFO_POPUP) {
+                currentState = GameState::PLAYING;
+            }
             startGameMusic();
             return;
         }
@@ -461,7 +474,9 @@ void Game::update() {
         if (videoPlayer.isFinished()) {
             finishCutscene();
             resetLevel(6);
-            currentState = GameState::PLAYING;
+            if (currentState != GameState::INFO_POPUP) {
+                currentState = GameState::PLAYING;
+            }
             startGameMusic();
         }
         return;
